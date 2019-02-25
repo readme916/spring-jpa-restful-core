@@ -1,0 +1,183 @@
+<!DOCTYPE HTML>
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta content="text/html;charset=UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<!-- 最新版本的 Bootstrap 核心 CSS 文件 -->
+<link rel="stylesheet"
+	href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css"
+	integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
+	crossorigin="anonymous">
+
+<!-- 可选的 Bootstrap 主题文件（一般不用引入） -->
+<link rel="stylesheet"
+	href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap-theme.min.css"
+	integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp"
+	crossorigin="anonymous">
+
+<!-- 最新的 Bootstrap 核心 JavaScript 文件 -->
+<script
+	src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.min.js"
+	integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+	crossorigin="anonymous"></script>
+
+</head>
+<body>
+
+	<div class="container">
+
+		<div class="row">
+			<div class="col-lg-12">
+				<div class="panel panel-primary">
+					<div class="panel-heading">
+						<h3 class="panel-title">资源名称</h3>
+					</div>
+					<div class="panel-body">
+						<div th:text="${resource.title}"></div>
+					</div>
+
+				</div>
+				<div class="panel panel-primary">
+					<div class="panel-heading">
+						<h3 class="panel-title">资源地址</h3>
+					</div>
+					<div class="panel-body">
+						<a th:text="${resource.resourceUri}"
+							th:href="@{${resource.resourceUri}}"></a>
+					</div>
+
+				</div>
+
+				<div class="panel panel-primary">
+					<div class="panel-heading">
+						<h3 class="panel-title">访问方式</h3>
+					</div>
+					<div class="panel-body">
+						<table class="table">
+							<thead>
+								<tr>
+									<th>请求方式</th>
+									<th>说明</th>
+								</tr>
+							</thead>
+							<tbody th:if="${not #lists.isEmpty(resource.methods)}">
+								<tr th:each="m : ${resource.methods}">
+									<td th:text="${m.method}"></td>
+									<td th:text="${m.description}"></td>
+
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+
+
+				<div class="panel panel-primary">
+					<div class="panel-heading">
+						<h3 class="panel-title">生效的拦截器</h3>
+					</div>
+					<div class="panel-body">
+						<table class="table">
+							<thead>
+								<tr>
+									<th>请求方式</th>
+									<th>拦截器</th>
+								</tr>
+							</thead>
+
+							<tbody>
+								<tr th:if="${not #lists.isEmpty(resource.interceptors['GET'])}">
+									<td>GET</td>
+									<td>
+										<ol>
+											<li th:each="i : ${resource.interceptors['GET']}"><span
+												th:text="${i.name}"></span><span
+												th:text="'('+${i.description}+')'"></span></li>
+
+										</ol>
+									</td>
+								</tr>
+								<tr th:if="${not #lists.isEmpty(resource.interceptors['POST'])}">
+									<td>POST</td>
+									<td>
+										<ol>
+											<li th:each="i : ${resource.interceptors['POST']}"><span
+												th:text="${i.name}"></span><span
+												th:text="'('+${i.description}+')'"></span></li>
+
+										</ol>
+									</td>
+								</tr>
+							</tbody>
+
+
+						</table>
+					</div>
+
+				</div>
+				<div class="panel panel-primary">
+					<div class="panel-heading">
+						<h3 class="panel-title">POST提交格式</h3>
+					</div>
+					<div class="panel-body">
+						<pre th:text="${resource.postStructureString}"></pre>
+					</div>
+
+				</div>
+
+				<div class="panel panel-primary">
+					<div class="panel-heading">
+						<h3 class="panel-title">字段详解</h3>
+					</div>
+					<div class="panel-body">
+						<table class="table">
+							<thead>
+								<tr>
+									<th>名称</th>
+									<th>生命周期</th>
+									<th>数据类型</th>
+									<th>关系</th>
+									<th>地址</th>
+									<th>格式限制</th>
+								</tr>
+							</thead>
+							<tbody th:if="${not #lists.isEmpty(resource.fields)}">
+								<tr th:each="m : ${resource.fields}">
+									<td th:text="${m.key}"></td>
+									<td th:text="${m.value.lifeCycle}"></td>
+									<td th:text="${m.value.dataType}"></td>
+									<td th:text="${m.value.relationship}"></td>
+									<td><a th:text="${m.value.resourceUri}"
+										th:href="@{${structurePath}+${m.value.resourceUri}}"> </a></td>
+									<td>
+										<ul th:if="${not #lists.isEmpty(m.value.constraints)}">
+											<li th:each="c : ${m.value.constraints}" th:text="${c}"></li>
+										</ul>
+									</td>
+
+								</tr>
+							</tbody>
+						</table>
+					</div>
+
+				</div>
+				<div class="panel panel-primary">
+					<div class="panel-heading">
+						<h3 class="panel-title">相关资源</h3>
+					</div>
+					<div class="panel-body">
+						<ul th:if="${not #lists.isEmpty(resource.relativeUri)}">
+							<li th:each="r : ${resource.relativeUri}"><a th:text="${r}"
+								th:href="@{${structurePath}+${r}}"> </a></li>
+
+						</ul>
+					</div>
+
+				</div>
+			</div>
+		</div>
+	</div>
+
+</body>
+</html>
