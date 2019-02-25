@@ -11,8 +11,8 @@ import com.liyang.jpa.mysql.config.JpaSmartQuerySupport;
 import com.liyang.jpa.mysql.db.structure.ColumnJoinType;
 import com.liyang.jpa.mysql.db.structure.ColumnStucture;
 import com.liyang.jpa.mysql.db.structure.EntityStructure;
+import com.liyang.jpa.mysql.exception.GetFormatException;
 import com.liyang.jpa.restful.annotation.JpaRestfulResource;
-import com.liyang.jpa.restful.exception.GetFormatException;
 
 public abstract class BaseService implements ApplicationContextAware {
 

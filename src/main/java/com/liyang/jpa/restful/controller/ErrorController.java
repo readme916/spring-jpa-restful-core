@@ -7,8 +7,8 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.liyang.jpa.mysql.exception.GetFormatException;
 import com.liyang.jpa.restful.exception.BusinessException;
-import com.liyang.jpa.restful.exception.GetFormatException;
 import com.liyang.jpa.restful.exception.PostFormatException;
 
 @RestController

@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.liyang.jpa.restful.service.DeleteService;
 import com.liyang.jpa.restful.service.GetService;
 import com.liyang.jpa.restful.service.PostService;
 
@@ -26,6 +27,9 @@ public class RestfulController {
 
 	@Autowired
 	GetService getService;
+	
+	@Autowired
+	DeleteService deleteService;
 
 	// GET
 
@@ -101,5 +105,19 @@ public class RestfulController {
 			@PathVariable String subsubResourceProperty, @RequestBody(required = true) String body) {
 		return postService.create(resource, resourceId, subResource, subResourceId, subsubResourceProperty, body);
 	}
-
+	
+	
+	//Delete
+	// 删除资源
+	@RequestMapping(path = "{resource}/{resourceId}", method = RequestMethod.DELETE)
+	public Object delete(@PathVariable String resource, @PathVariable String resourceId) {
+		return deleteService.delete(resource, resourceId);
+	}
+	
+	// 桥接删除资源，必须为子资源
+	@RequestMapping(path = "{resource}/{resourceId}/{subResource}/{subResourceId}", method = RequestMethod.DELETE)
+	public Object sub_update(@PathVariable String resource, @PathVariable String resourceId,
+			@PathVariable String subResource, @PathVariable String subResourceId) {
+		return deleteService.delete(resource, resourceId, subResource, subResourceId);
+	}
 }

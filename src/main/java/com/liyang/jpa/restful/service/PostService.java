@@ -151,7 +151,6 @@ public class PostService extends BaseService {
 		try {
 			readObject = mapper.readValue(body, targetEntityStructure.getEntityClass());
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			throw new PostFormatException(3280, "数据格式异常", "json解析错误");
 		}
@@ -243,7 +242,6 @@ public class PostService extends BaseService {
 			}
 			return readObject;
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			throw new PostFormatException(3010, "数据格式异常", "json解析错误");
 		}
@@ -261,7 +259,6 @@ public class PostService extends BaseService {
 			}
 			return old;
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			throw new PostFormatException(3030, "数据格式异常", "json解析错误");
 		}

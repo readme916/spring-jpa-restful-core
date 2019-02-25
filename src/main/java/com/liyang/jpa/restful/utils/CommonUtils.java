@@ -27,7 +27,6 @@ public class CommonUtils {
 		try {
 			writeValueAsString = objectMapper.writeValueAsString(object);
 		} catch (JsonProcessingException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return writeValueAsString;
