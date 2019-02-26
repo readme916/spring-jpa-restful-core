@@ -1,6 +1,7 @@
 package com.liyang.jpa.restful.service;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
@@ -27,6 +28,7 @@ import com.liyang.jpa.restful.exception.PostFormatException;
 import com.liyang.jpa.restful.interceptor.JpaRestfulPostInterceptor;
 import com.liyang.jpa.restful.response.HTTPPostOkResponse;
 import com.liyang.jpa.restful.utils.CommonUtils;
+import com.liyang.jpa.restful.utils.InterceptorComparator;
 
 @Service
 public class PostService extends BaseService {
@@ -273,6 +275,7 @@ public class PostService extends BaseService {
 
 			Collection<JpaRestfulPostInterceptor> values = this.interceptors.values();
 			JpaRestfulPostInterceptor[] interceptors = values.toArray(new JpaRestfulPostInterceptor[values.size()]);
+			Arrays.sort(interceptors, new InterceptorComparator());
 			// 顺序执行拦截器的preHandle方法，如果返回false,则调用triggerAfterCompletion方法
 			for (int i = 0; i < interceptors.length; i++) {
 				JpaRestfulPostInterceptor interceptor = interceptors[i];
@@ -296,6 +299,7 @@ public class PostService extends BaseService {
 
 			Collection<JpaRestfulPostInterceptor> values = this.interceptors.values();
 			JpaRestfulPostInterceptor[] interceptors = values.toArray(new JpaRestfulPostInterceptor[values.size()]);
+			Arrays.sort(interceptors, new InterceptorComparator());
 			for (int i = interceptors.length - 1; i >= 0; i--) {
 				JpaRestfulPostInterceptor interceptor = interceptors[i];
 				String patternPath = interceptor.path();

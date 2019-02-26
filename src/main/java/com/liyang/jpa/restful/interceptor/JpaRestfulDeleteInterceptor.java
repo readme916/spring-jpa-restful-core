@@ -4,13 +4,7 @@ import java.util.Map;
 
 import com.liyang.jpa.restful.response.HTTPListResponse;
 
-public interface JpaRestfulDeleteInterceptor {
-
-	String name();
-	
-	String description();
-	
-	String path();
+public interface JpaRestfulDeleteInterceptor extends JpaRestfulInterceptor  {
 
 	boolean preHandle(String requestPath, Object oldInstance);
 

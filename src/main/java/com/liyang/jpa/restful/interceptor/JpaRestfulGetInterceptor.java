@@ -4,13 +4,7 @@ import java.util.Map;
 
 import com.liyang.jpa.restful.response.HTTPListResponse;
 
-public interface JpaRestfulGetInterceptor {
-
-	String name();
-	
-	String description();
-	
-	String path();
+public interface JpaRestfulGetInterceptor extends JpaRestfulInterceptor {
 	
 	boolean preHandle(String requestPath, Map<String, String> params);
 

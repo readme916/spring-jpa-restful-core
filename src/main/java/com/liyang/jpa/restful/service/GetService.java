@@ -1,8 +1,10 @@
 package com.liyang.jpa.restful.service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +31,7 @@ import com.liyang.jpa.restful.exception.BusinessException;
 import com.liyang.jpa.restful.exception.PostFormatException;
 import com.liyang.jpa.restful.interceptor.JpaRestfulGetInterceptor;
 import com.liyang.jpa.restful.utils.CommonUtils;
+import com.liyang.jpa.restful.utils.InterceptorComparator;
 
 @Service
 public class GetService extends BaseService {
@@ -123,6 +126,8 @@ public class GetService extends BaseService {
 
 			Collection<JpaRestfulGetInterceptor> values = this.interceptors.values();
 			JpaRestfulGetInterceptor[] interceptors = values.toArray(new JpaRestfulGetInterceptor[values.size()]);
+			Arrays.sort(interceptors, new InterceptorComparator());
+			
 			for (int i = interceptors.length - 1; i >= 0; i--) {
 				JpaRestfulGetInterceptor interceptor = interceptors[i];
 				String patternPath = interceptor.path();
@@ -135,6 +140,9 @@ public class GetService extends BaseService {
 		return fetchList;
 
 	}
+	
+
+	
 	private boolean applyPreInterceptor(String requestPath ,HashMap<String, String> params) {
 		if (this.interceptors != null && this.interceptors.size() != 0) {
 
@@ -142,6 +150,8 @@ public class GetService extends BaseService {
 
 			Collection<JpaRestfulGetInterceptor> values = this.interceptors.values();
 			JpaRestfulGetInterceptor[] interceptors = values.toArray(new JpaRestfulGetInterceptor[values.size()]);
+			Arrays.sort(interceptors, new InterceptorComparator());
+			
 			// 顺序执行拦截器的preHandle方法，如果返回false,则调用triggerAfterCompletion方法
 			for (int i = 0; i < interceptors.length; i++) {
 				JpaRestfulGetInterceptor interceptor = interceptors[i];

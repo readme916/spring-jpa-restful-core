@@ -83,6 +83,7 @@
 								<tr>
 									<th>请求方式</th>
 									<th>拦截器</th>
+									
 								</tr>
 							</thead>
 
@@ -90,23 +91,41 @@
 								<tr th:if="${not #lists.isEmpty(resource.interceptors['GET'])}">
 									<td>GET</td>
 									<td>
-										<ol>
-											<li th:each="i : ${resource.interceptors['GET']}"><span
+										<ul>
+											<li th:each="i : ${resource.interceptors['GET']}">
+											<span th:text="${i.order}"></span> - 
+											<span
 												th:text="${i.name}"></span><span
 												th:text="'('+${i.description}+')'"></span></li>
 
-										</ol>
+										</ul>
 									</td>
+									
 								</tr>
 								<tr th:if="${not #lists.isEmpty(resource.interceptors['POST'])}">
 									<td>POST</td>
 									<td>
-										<ol>
-											<li th:each="i : ${resource.interceptors['POST']}"><span
+										<ul>
+											<li th:each="i : ${resource.interceptors['POST']}">
+											<span th:text="${i.order}"></span> - 
+											<span
 												th:text="${i.name}"></span><span
 												th:text="'('+${i.description}+')'"></span></li>
 
-										</ol>
+										</ul>
+									</td>
+								</tr>
+								<tr th:if="${not #lists.isEmpty(resource.interceptors['DELETE'])}">
+									<td>DELETE</td>
+									<td>
+										<ul>
+											<li th:each="i : ${resource.interceptors['DELETE']}">
+											<span th:text="${i.order}"></span> - 
+											<span
+												th:text="${i.name}"></span><span
+												th:text="'('+${i.description}+')'"></span><span th:text="${i.order}"></span></li>
+
+										</ul>
 									</td>
 								</tr>
 							</tbody>

@@ -17,7 +17,6 @@ import com.liyang.jpa.restful.config.JpaRestfulSupport;
 @Retention(RUNTIME)
 @Target(ElementType.TYPE)
 @Inherited
-@EnableJpaSmartQuery
 @Import({ApplicationContextSupport.class,JpaSmartQuerySupport.class,JpaRestfulSupport.class})
 public @interface EnableJpaRestful {
 

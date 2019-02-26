@@ -54,6 +54,7 @@ import com.liyang.jpa.mysql.db.structure.ColumnJoinType;
 import com.liyang.jpa.mysql.db.structure.ColumnStucture;
 import com.liyang.jpa.mysql.db.structure.EntityStructure;
 import com.liyang.jpa.restful.annotation.JpaRestfulResource;
+import com.liyang.jpa.restful.interceptor.JpaRestfulDeleteInterceptor;
 import com.liyang.jpa.restful.interceptor.JpaRestfulGetInterceptor;
 import com.liyang.jpa.restful.interceptor.JpaRestfulPostInterceptor;
 import com.liyang.jpa.restful.utils.CommonUtils;
@@ -75,6 +76,9 @@ public class StructureShowController {
 
 	@Autowired(required = false)
 	private List<JpaRestfulPostInterceptor> posts;
+	
+	@Autowired(required = false)
+	private List<JpaRestfulDeleteInterceptor> deletes;
 
 	@ModelAttribute
 	public void populateModel(Model model) {
@@ -95,9 +99,7 @@ public class StructureShowController {
 				arrayList.add(simpleResource);
 			}
 		}
-		
 		String basePatha1 = ClassUtils.getDefaultClassLoader().getResource("").getPath();
-		System.out.println(basePatha1);
 		model.addAttribute("resources", arrayList);
 		return "restful_home";
 	}
@@ -117,7 +119,7 @@ public class StructureShowController {
 		postDescription.setMethod("POST");
 		postDescription.setDescription("创建" + resource + "资源，格式见下");
 		fullResource.setMethods(Arrays.asList(new MethodDescription[] { getDescription, postDescription }));
-		fullResource.setInterceptors(_interceptorParse(fullResource.getResourceUri(),true));
+		fullResource.setInterceptors(_interceptorParse(fullResource.getResourceUri(),true,false));
 		Field[] declaredFields = entityClass.getDeclaredFields();
 		fillFields(declaredFields, fullResource, "/" + path + "/" + resource,true);
 
@@ -157,7 +159,7 @@ public class StructureShowController {
 		fullResource.setMethods(
 				Arrays.asList(new MethodDescription[] { getDescription, postDescription, deleteDescription }));
 		fullResource.setResourceUri("/" + path + "/" + resource + "/{id}");
-		fullResource.setInterceptors(_interceptorParse(fullResource.getResourceUri(),true));
+		fullResource.setInterceptors(_interceptorParse(fullResource.getResourceUri(),true,true));
 		fillFields(declaredFields, fullResource, "/" + path + "/" + resource,true);
 		HashMap<String, Object> postStructure = fullResource.getPostStructure();
 		ObjectMapper mapper = new ObjectMapper();
@@ -208,7 +210,7 @@ public class StructureShowController {
 		methods.add(postDescription);
 
 		fullResource.setMethods(methods);
-		fullResource.setInterceptors(_interceptorParse(fullResource.getResourceUri(),parentStructure));
+		fullResource.setInterceptors(_interceptorParse(fullResource.getResourceUri(),parentStructure,false));
 		fillFields(declaredFields, fullResource, "/" + path + "/" + resource + "/{id}/" + subResource , parentStructure);
 		HashMap<String, Object> postStructure = fullResource.getPostStructure();
 		ObjectMapper mapper = new ObjectMapper();
@@ -259,7 +261,7 @@ public class StructureShowController {
 		methods.add(deleteDescription);
 		fullResource.setMethods(methods);
 
-		fullResource.setInterceptors(_interceptorParse(fullResource.getResourceUri(),parentStructure));
+		fullResource.setInterceptors(_interceptorParse(fullResource.getResourceUri(),parentStructure,true));
 		fillFields(declaredFields, fullResource, "/" + path + "/" + resource + "/{id}/" + subResource , parentStructure);
 		HashMap<String, Object> postStructure = fullResource.getPostStructure();
 		ObjectMapper mapper = new ObjectMapper();
@@ -309,7 +311,7 @@ public class StructureShowController {
 		methods.add(postDescription);
 
 		fullResource.setMethods(methods);
-		fullResource.setInterceptors(_interceptorParse(fullResource.getResourceUri(),parentStructure));
+		fullResource.setInterceptors(_interceptorParse(fullResource.getResourceUri(),parentStructure,false));
 		fillFields(declaredFields, fullResource, "/" + path + "/" + resource + "/{id}/" + subResource + "/{id}/" + subsubResource , false);
 		HashMap<String, Object> postStructure = fullResource.getPostStructure();
 		ObjectMapper mapper = new ObjectMapper();
@@ -369,24 +371,32 @@ public class StructureShowController {
 		}
 	}
 
-	private HashMap<String, List<Interceptor>> _interceptorParse(String resourceUri, boolean parentStructure) {
+	private HashMap<String, List<Interceptor>> _interceptorParse(String resourceUri, boolean parentStructure,boolean delete) {
 		String replace = resourceUri.replace("/" + path, "");
 
 		ArrayList<Interceptor> getList = new ArrayList<Interceptor>();
 		ArrayList<Interceptor> postList = new ArrayList<Interceptor>();
+		ArrayList<Interceptor> deleteList = new ArrayList<Interceptor>();
 		PathMatcher matcher = new AntPathMatcher();
 
 		if (this.gets != null) {
 			for (JpaRestfulGetInterceptor interceptor : this.gets) {
 				if (matcher.match(interceptor.path(), replace)) {
-					getList.add(new Interceptor(interceptor.name(), interceptor.description(), interceptor.path()));
+					getList.add(new Interceptor(interceptor.name(), interceptor.description(), interceptor.path(),interceptor.order()));
 				}
 			}
 		}
 		if (this.posts != null) {
 			for (JpaRestfulPostInterceptor interceptor : this.posts) {
 				if (matcher.match(interceptor.path(), replace)) {
-					postList.add(new Interceptor(interceptor.name(), interceptor.description(), interceptor.path()));
+					postList.add(new Interceptor(interceptor.name(), interceptor.description(), interceptor.path(),interceptor.order()));
+				}
+			}
+		}
+		if (this.deletes != null) {
+			for (JpaRestfulDeleteInterceptor interceptor : this.deletes) {
+				if (matcher.match(interceptor.path(), replace)) {
+					deleteList.add(new Interceptor(interceptor.name(), interceptor.description(), interceptor.path(),interceptor.order()));
 				}
 			}
 		}
@@ -395,6 +405,9 @@ public class StructureShowController {
 			hashMap.put("GET", getList);
 		}
 		hashMap.put("POST", postList);
+		if(delete){
+			hashMap.put("DELETE", deleteList);
+		}
 		return hashMap;
 	}
 
@@ -647,11 +660,22 @@ public class StructureShowController {
 		private String description;
 		private String path;
 
-		public Interceptor(String name, String description, String path) {
+		private int order;
+		
+		public Interceptor(String name, String description, String path,int order) {
 			super();
 			this.name = name;
 			this.description = description;
 			this.path = path;
+			this.order= order;
+		}
+
+		public int getOrder() {
+			return order;
+		}
+
+		public void setOrder(int order) {
+			this.order = order;
 		}
 
 		public String getName() {

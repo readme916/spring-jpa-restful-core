@@ -12,11 +12,6 @@
 	</parent>
 	<dependencies>
 		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-devtools</artifactId>
-		</dependency>
-		
-		<dependency>
 			<groupId>com.liyang.jpa</groupId>
 			<artifactId>mysql-smart-query</artifactId>
 			<version>1.0.1-RELEASE</version>

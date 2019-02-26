@@ -1,6 +1,7 @@
 package com.liyang.jpa.restful.service;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -28,6 +29,7 @@ import com.liyang.jpa.restful.exception.PostFormatException;
 import com.liyang.jpa.restful.interceptor.JpaRestfulDeleteInterceptor;
 import com.liyang.jpa.restful.interceptor.JpaRestfulPostInterceptor;
 import com.liyang.jpa.restful.response.HTTPPostOkResponse;
+import com.liyang.jpa.restful.utils.InterceptorComparator;
 @Service
 public class DeleteService extends BaseService {
 	private Map<String, JpaRestfulDeleteInterceptor> interceptors;
@@ -201,6 +203,7 @@ public class DeleteService extends BaseService {
 
 			Collection<JpaRestfulDeleteInterceptor> values = this.interceptors.values();
 			JpaRestfulDeleteInterceptor[] interceptors = values.toArray(new JpaRestfulDeleteInterceptor[values.size()]);
+			Arrays.sort(interceptors, new InterceptorComparator());
 			// 顺序执行拦截器的preHandle方法，如果返回false,则调用triggerAfterCompletion方法
 			for (int i = 0; i < interceptors.length; i++) {
 				JpaRestfulDeleteInterceptor interceptor = interceptors[i];
@@ -224,6 +227,7 @@ public class DeleteService extends BaseService {
 
 			Collection<JpaRestfulDeleteInterceptor> values = this.interceptors.values();
 			JpaRestfulDeleteInterceptor[] interceptors = values.toArray(new JpaRestfulDeleteInterceptor[values.size()]);
+			Arrays.sort(interceptors, new InterceptorComparator());
 			for (int i = interceptors.length - 1; i >= 0; i--) {
 				JpaRestfulDeleteInterceptor interceptor = interceptors[i];
 				String patternPath = interceptor.path();
