@@ -1,8 +1,8 @@
-package com.liyang.jpa.restful.response;
+package com.liyang.jpa.restful.core.response;
 
 import java.util.Date;
 
-import com.liyang.jpa.restful.exception.JpaRestfulException;
+import com.liyang.jpa.restful.core.exception.JpaRestfulException;
 
 public class HTTPPostErrorResponse {
 

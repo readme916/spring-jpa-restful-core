@@ -1,4 +1,4 @@
-package com.liyang.jpa.restful.controller;
+package com.liyang.jpa.restful.core.controller;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.liyang.jpa.mysql.exception.GetFormatException;
-import com.liyang.jpa.restful.exception.BusinessException;
-import com.liyang.jpa.restful.exception.PostFormatException;
+import com.liyang.jpa.restful.core.exception.BusinessException;
+import com.liyang.jpa.restful.core.exception.PostFormatException;
 
 @RestController
 @ControllerAdvice

@@ -1,8 +1,9 @@
-package com.liyang.jpa.restful.service;
+package com.liyang.jpa.restful.core.service;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
@@ -24,12 +25,13 @@ import com.liyang.jpa.mysql.db.SmartQuery;
 import com.liyang.jpa.mysql.db.structure.ColumnJoinType;
 import com.liyang.jpa.mysql.db.structure.ColumnStucture;
 import com.liyang.jpa.mysql.db.structure.EntityStructure;
-import com.liyang.jpa.restful.exception.BusinessException;
-import com.liyang.jpa.restful.exception.PostFormatException;
-import com.liyang.jpa.restful.interceptor.JpaRestfulDeleteInterceptor;
-import com.liyang.jpa.restful.interceptor.JpaRestfulPostInterceptor;
-import com.liyang.jpa.restful.response.HTTPPostOkResponse;
-import com.liyang.jpa.restful.utils.InterceptorComparator;
+import com.liyang.jpa.restful.core.exception.BusinessException;
+import com.liyang.jpa.restful.core.exception.PostFormatException;
+import com.liyang.jpa.restful.core.interceptor.JpaRestfulDeleteInterceptor;
+import com.liyang.jpa.restful.core.interceptor.JpaRestfulPostInterceptor;
+import com.liyang.jpa.restful.core.response.HTTPPostOkResponse;
+import com.liyang.jpa.restful.core.utils.CommonUtils;
+import com.liyang.jpa.restful.core.utils.InterceptorComparator;
 @Service
 public class DeleteService extends BaseService {
 	private Map<String, JpaRestfulDeleteInterceptor> interceptors;
@@ -44,6 +46,7 @@ public class DeleteService extends BaseService {
 	@Transactional(readOnly = false)
 	public Object delete(String resource, String resourceId) {
 		checkResource(resource, null);
+		HashMap<Object, Object> context = new HashMap<Object,Object>();
 		EntityStructure structure = JpaSmartQuerySupport.getStructure(resource);
 		Object oldInstance;
 		Optional oldInstanceOptional = structure.getJpaRepository().findById(resourceId);
@@ -53,13 +56,13 @@ public class DeleteService extends BaseService {
 			oldInstance = oldInstanceOptional.get();
 		}
 		String requestPath = "/" + resource + "/" + resourceId;
-		applyPreInterceptor(requestPath, oldInstance);
+		applyPreInterceptor(requestPath, oldInstance, context);
 		
 		recursiveDelete(structure, oldInstance);
 		
 		HTTPPostOkResponse httpPostOkResponse = new HTTPPostOkResponse();
 		httpPostOkResponse.setUuid(resourceId);
-		return applyPostInterceptor(requestPath, httpPostOkResponse);
+		return applyPostInterceptor(requestPath, httpPostOkResponse, context);
 	}
 	
 	
@@ -69,6 +72,7 @@ public class DeleteService extends BaseService {
 	@Transactional(readOnly = false)
 	public Object delete(String resource, String resourceId, String subResource, String subResourceId) {
 		checkResource(resource,  null);
+		HashMap<Object, Object> context = new HashMap<Object,Object>();
 		EntityStructure structure = JpaSmartQuerySupport.getStructure(resource);
 		long fetchCount = SmartQuery.fetchCount(resource,
 				"uuid=" + resourceId + "&" + subResource + ".uuid=" + subResourceId);
@@ -78,18 +82,17 @@ public class DeleteService extends BaseService {
 			Object owner;
 			Optional ownerOptional = structure.getJpaRepository().findById(resourceId);
 			owner = ownerOptional.get();
-			EntityStructure subResourceStructure = JpaSmartQuerySupport.getStructure(subResourceName(resource, subResource));
+			EntityStructure subResourceStructure = JpaSmartQuerySupport.getStructure(CommonUtils.subResourceName(resource, subResource));
 			Optional oldInstanceOptional = subResourceStructure.getJpaRepository().findById(subResourceId);
 			Object subResourceObject = oldInstanceOptional.get();
 			String requestPath = "/" + resource + "/" + resourceId + "/" + subResource + "/" + subResourceId;
-			applyPreInterceptor(requestPath, subResourceObject);
-			
+			applyPreInterceptor(requestPath, subResourceObject, context);
 			
 			subDelete(structure, owner, subResource, subResourceStructure, subResourceObject);
 			
 			HTTPPostOkResponse httpPostOkResponse = new HTTPPostOkResponse();
 			httpPostOkResponse.setUuid(subResourceId);
-			return applyPostInterceptor(requestPath, httpPostOkResponse);
+			return applyPostInterceptor(requestPath, httpPostOkResponse, context);
 		}
 	}
 	
@@ -196,7 +199,7 @@ public class DeleteService extends BaseService {
 		} 
 	}
 
-	private boolean applyPreInterceptor(String requestPath, Object oldInstance) {
+	private boolean applyPreInterceptor(String requestPath, Object oldInstance, Map<Object,Object> context) {
 		if (this.interceptors != null && this.interceptors.size() != 0) {
 
 			PathMatcher matcher = new AntPathMatcher();
@@ -212,7 +215,7 @@ public class DeleteService extends BaseService {
 				if (!matcher.match(patternPath, requestPath)) {
 					continue;
 				}
-				if (!interceptor.preHandle(requestPath, oldInstance)) {
+				if (!interceptor.preHandle(requestPath, oldInstance,context)) {
 					throw new BusinessException(2000, "数据被拦截", "路径：" + interceptor.path());
 				}
 			}
@@ -220,7 +223,7 @@ public class DeleteService extends BaseService {
 		return true;
 	}
 
-	private Object applyPostInterceptor(String requestPath, Object httpPostOkResponse) {
+	private Object applyPostInterceptor(String requestPath, Object httpPostOkResponse, Map<Object,Object> context) {
 		if (this.interceptors != null && this.interceptors.size() != 0) {
 
 			PathMatcher matcher = new AntPathMatcher();
@@ -234,7 +237,7 @@ public class DeleteService extends BaseService {
 				if (!matcher.match(patternPath, requestPath)) {
 					continue;
 				}
-				httpPostOkResponse = interceptor.postHandle(requestPath, httpPostOkResponse);
+				httpPostOkResponse = interceptor.postHandle(requestPath, httpPostOkResponse, context);
 			}
 		}
 		return httpPostOkResponse;

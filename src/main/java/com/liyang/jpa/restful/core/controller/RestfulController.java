@@ -1,4 +1,4 @@
-package com.liyang.jpa.restful.controller;
+package com.liyang.jpa.restful.core.controller;
 
 import java.util.HashMap;
 
@@ -13,9 +13,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.liyang.jpa.restful.service.DeleteService;
-import com.liyang.jpa.restful.service.GetService;
-import com.liyang.jpa.restful.service.PostService;
+import com.liyang.jpa.restful.core.service.DeleteService;
+import com.liyang.jpa.restful.core.service.GetService;
+import com.liyang.jpa.restful.core.service.PostService;
 
 @RestController
 @RequestMapping("/${spring.jpa.restful.path}")

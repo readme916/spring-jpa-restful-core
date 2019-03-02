@@ -1,4 +1,4 @@
-package com.liyang.jpa.restful.interceptor;
+package com.liyang.jpa.restful.core.interceptor;
 
 public interface JpaRestfulInterceptor {
 

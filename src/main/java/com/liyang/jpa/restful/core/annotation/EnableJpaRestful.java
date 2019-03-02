@@ -1,4 +1,4 @@
-package com.liyang.jpa.restful.annotation;
+package com.liyang.jpa.restful.core.annotation;
 
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Import;
 import com.liyang.jpa.mysql.annotation.EnableJpaSmartQuery;
 import com.liyang.jpa.mysql.config.ApplicationContextSupport;
 import com.liyang.jpa.mysql.config.JpaSmartQuerySupport;
-import com.liyang.jpa.restful.config.JpaRestfulSupport;
+import com.liyang.jpa.restful.core.config.JpaRestfulSupport;
 
 @Retention(RUNTIME)
 @Target(ElementType.TYPE)

@@ -1,9 +1,9 @@
-package com.liyang.jpa.restful.utils;
+package com.liyang.jpa.restful.core.utils;
 
 import java.util.Comparator;
 
-import com.liyang.jpa.restful.interceptor.JpaRestfulGetInterceptor;
-import com.liyang.jpa.restful.interceptor.JpaRestfulInterceptor;
+import com.liyang.jpa.restful.core.interceptor.JpaRestfulGetInterceptor;
+import com.liyang.jpa.restful.core.interceptor.JpaRestfulInterceptor;
 
 public class InterceptorComparator implements Comparator<JpaRestfulInterceptor >{
     @Override

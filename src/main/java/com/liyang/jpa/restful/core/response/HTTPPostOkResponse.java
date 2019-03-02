@@ -1,11 +1,10 @@
-package com.liyang.jpa.restful.response;
-
-import java.util.Date;
+package com.liyang.jpa.restful.core.response;
 
 public class HTTPPostOkResponse {
 
 	private int error=0;
 	private String uuid;
+	
 	public int getError() {
 		return error;
 	}

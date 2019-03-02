@@ -1,4 +1,4 @@
-package com.liyang.jpa.restful.controller;
+package com.liyang.jpa.restful.core.controller;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -53,11 +53,11 @@ import com.liyang.jpa.mysql.config.JpaSmartQuerySupport;
 import com.liyang.jpa.mysql.db.structure.ColumnJoinType;
 import com.liyang.jpa.mysql.db.structure.ColumnStucture;
 import com.liyang.jpa.mysql.db.structure.EntityStructure;
-import com.liyang.jpa.restful.annotation.JpaRestfulResource;
-import com.liyang.jpa.restful.interceptor.JpaRestfulDeleteInterceptor;
-import com.liyang.jpa.restful.interceptor.JpaRestfulGetInterceptor;
-import com.liyang.jpa.restful.interceptor.JpaRestfulPostInterceptor;
-import com.liyang.jpa.restful.utils.CommonUtils;
+import com.liyang.jpa.restful.core.annotation.JpaRestfulResource;
+import com.liyang.jpa.restful.core.interceptor.JpaRestfulDeleteInterceptor;
+import com.liyang.jpa.restful.core.interceptor.JpaRestfulGetInterceptor;
+import com.liyang.jpa.restful.core.interceptor.JpaRestfulPostInterceptor;
+import com.liyang.jpa.restful.core.utils.CommonUtils;
 
 @Controller
 @RequestMapping("/${spring.jpa.restful.structure-path}")

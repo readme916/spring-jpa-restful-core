@@ -1,4 +1,4 @@
-package com.liyang.jpa.restful.response;
+package com.liyang.jpa.restful.core.response;
 
 public class HTTPListResponse {
 	private Object items;

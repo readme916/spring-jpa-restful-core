@@ -1,4 +1,4 @@
-package com.liyang.jpa.restful.exception;
+package com.liyang.jpa.restful.core.exception;
 
 
 

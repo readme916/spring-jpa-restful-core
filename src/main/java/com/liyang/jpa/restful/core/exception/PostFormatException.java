@@ -1,4 +1,4 @@
-package com.liyang.jpa.restful.exception;
+package com.liyang.jpa.restful.core.exception;
 
 /**
  * 使用jparestful的post方法时候的各种输入验证错误

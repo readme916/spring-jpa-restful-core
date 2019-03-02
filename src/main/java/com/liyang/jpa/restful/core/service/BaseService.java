@@ -1,4 +1,4 @@
-package com.liyang.jpa.restful.service;
+package com.liyang.jpa.restful.core.service;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -12,7 +12,8 @@ import com.liyang.jpa.mysql.db.structure.ColumnJoinType;
 import com.liyang.jpa.mysql.db.structure.ColumnStucture;
 import com.liyang.jpa.mysql.db.structure.EntityStructure;
 import com.liyang.jpa.mysql.exception.GetFormatException;
-import com.liyang.jpa.restful.annotation.JpaRestfulResource;
+import com.liyang.jpa.restful.core.annotation.JpaRestfulResource;
+import com.liyang.jpa.restful.core.utils.CommonUtils;
 
 public abstract class BaseService implements ApplicationContextAware {
 
@@ -20,7 +21,7 @@ public abstract class BaseService implements ApplicationContextAware {
 			HashMap<String, String> params) {
 		checkResource(resource, params);
 		_checkSubResource(resource, subResource);
-		String subResourceName = subResourceName(resource, subResource);
+		String subResourceName = CommonUtils.subResourceName(resource, subResource);
 		_checkSubResource(subResourceName, subsubResource);
 	}
 
@@ -43,13 +44,6 @@ public abstract class BaseService implements ApplicationContextAware {
 		}
 	}
 
-	protected String subResourceName(String resource, String subResource) {
-		EntityStructure structure = JpaSmartQuerySupport.getStructure(resource);
-		ColumnStucture columnStucture = structure.getObjectFields().get(subResource);
-		Class<?> targetEntity = columnStucture.getTargetEntity();
-		EntityStructure subStructure = JpaSmartQuerySupport.getStructure(targetEntity);
-		return subStructure.getName();
-	}
 
 	protected String reversePrefix(String resource, String subResource) {
 		EntityStructure structure = JpaSmartQuerySupport.getStructure(resource);

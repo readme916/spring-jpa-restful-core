@@ -1,8 +1,9 @@
-package com.liyang.jpa.restful.service;
+package com.liyang.jpa.restful.core.service;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -23,12 +24,12 @@ import com.liyang.jpa.mysql.db.SmartQuery;
 import com.liyang.jpa.mysql.db.structure.ColumnJoinType;
 import com.liyang.jpa.mysql.db.structure.ColumnStucture;
 import com.liyang.jpa.mysql.db.structure.EntityStructure;
-import com.liyang.jpa.restful.exception.BusinessException;
-import com.liyang.jpa.restful.exception.PostFormatException;
-import com.liyang.jpa.restful.interceptor.JpaRestfulPostInterceptor;
-import com.liyang.jpa.restful.response.HTTPPostOkResponse;
-import com.liyang.jpa.restful.utils.CommonUtils;
-import com.liyang.jpa.restful.utils.InterceptorComparator;
+import com.liyang.jpa.restful.core.exception.BusinessException;
+import com.liyang.jpa.restful.core.exception.PostFormatException;
+import com.liyang.jpa.restful.core.interceptor.JpaRestfulPostInterceptor;
+import com.liyang.jpa.restful.core.response.HTTPPostOkResponse;
+import com.liyang.jpa.restful.core.utils.CommonUtils;
+import com.liyang.jpa.restful.core.utils.InterceptorComparator;
 
 @Service
 public class PostService extends BaseService {
@@ -38,25 +39,25 @@ public class PostService extends BaseService {
 	@Transactional(readOnly = false)
 	public Object create(String resource, String body) {
 		checkResource(resource, null);
+		HashMap<Object, Object> context = new HashMap<Object,Object>();
 		String requestPath = "/" + resource;
-		applyPreInterceptor(requestPath, body, null);
-		
-		Object readObject = withoutIdBodyValidation(resource, body);
+		applyPreInterceptor(requestPath, body, null, context);
+
 		EntityStructure structure = JpaSmartQuerySupport.getStructure(resource);
-		Object save = structure.getJpaRepository().save(readObject);
+		Object readObject = withoutIdBodyValidation(structure, body);
+		Object save = structure.getJpaRepository().saveAndFlush(readObject);
+		
 		BeanWrapperImpl saveImpl = new BeanWrapperImpl(save);
 		Object savedUUID = saveImpl.getPropertyValue("uuid");
 		HTTPPostOkResponse httpPostOkResponse = new HTTPPostOkResponse();
 		httpPostOkResponse.setUuid(savedUUID.toString());
-		return applyPostInterceptor(requestPath, save);
+		return applyPostInterceptor(requestPath, httpPostOkResponse, context);
 	}
-
-
 
 	@Transactional(readOnly = false)
 	public Object create(String resource, String resourceId, String subResource, String body) {
 		checkResource(resource, null);
-		
+		HashMap<Object, Object> context = new HashMap<Object,Object>();
 		EntityStructure structure = JpaSmartQuerySupport.getStructure(resource);
 		Object owner;
 		Optional ownerOptional = structure.getJpaRepository().findById(resourceId);
@@ -66,41 +67,39 @@ public class PostService extends BaseService {
 			owner = ownerOptional.get();
 		}
 		String requestPath = "/" + resource + "/" + resourceId + "/" + subResource;
-		applyPreInterceptor(requestPath, body, null);
+		applyPreInterceptor(requestPath, body, null, context);
 
-		Object uuid = subResourceCreate(structure, owner, subResource, body);
-		HTTPPostOkResponse httpPostOkResponse = new HTTPPostOkResponse();
-		httpPostOkResponse.setUuid(uuid.toString());
-		return applyPostInterceptor(requestPath, httpPostOkResponse);
+		HTTPPostOkResponse httpPostOkResponse = subResourceCreate(structure, owner, subResource, body);
+
+		return applyPostInterceptor(requestPath, httpPostOkResponse, context);
 	}
+
 	@Transactional(readOnly = false)
 	public Object create(String resource, String resourceId, String subResource, String subResourceId,
 			String subsubResource, String body) {
-		checkSubResource(resource,subResource, null);
-
+		checkSubResource(resource, subResource, null);
+		HashMap<Object, Object> context = new HashMap<Object,Object>();
 		long fetchCount = SmartQuery.fetchCount(resource,
 				"uuid=" + resourceId + "&" + subResource + ".uuid=" + subResourceId);
 		if (fetchCount == 0) {
 			throw new PostFormatException(3530, "数据不存在", "");
 		}
-		String requestPath = "/" + resource + "/" + resourceId + "/" + subResource+"/"+subResourceId+"/"+subsubResource;
-		applyPreInterceptor(requestPath, body, null);
-		
-		String subResourceName = subResourceName(resource, subResource);
+		String requestPath = "/" + resource + "/" + resourceId + "/" + subResource + "/" + subResourceId + "/"
+				+ subsubResource;
+		applyPreInterceptor(requestPath, body, null, context);
+
+		String subResourceName = CommonUtils.subResourceName(resource, subResource);
 		EntityStructure subStructure = JpaSmartQuerySupport.getStructure(subResourceName);
 		Optional ownerOptional = subStructure.getJpaRepository().findById(subResourceId);
 		Object owner = ownerOptional.get();
-		Object uuid = subResourceCreate(subStructure, owner, subsubResource, body);
-
-		HTTPPostOkResponse httpPostOkResponse = new HTTPPostOkResponse();
-		httpPostOkResponse.setUuid(uuid.toString());
-		return applyPostInterceptor(requestPath, httpPostOkResponse);
+		HTTPPostOkResponse httpPostOkResponse = subResourceCreate(subStructure, owner, subsubResource, body);
+		return applyPostInterceptor(requestPath, httpPostOkResponse, context);
 	}
-	
 
 	@Transactional(readOnly = false)
 	public Object update(String resource, String resourceId, String body) {
 		checkResource(resource, null);
+		HashMap<Object, Object> context = new HashMap<Object,Object>();
 		EntityStructure structure = JpaSmartQuerySupport.getStructure(resource);
 		Object oldInstance;
 		Optional oldInstanceOptional = structure.getJpaRepository().findById(resourceId);
@@ -110,42 +109,102 @@ public class PostService extends BaseService {
 			oldInstance = oldInstanceOptional.get();
 		}
 		String requestPath = "/" + resource + "/" + resourceId;
-		applyPreInterceptor(requestPath, body, oldInstance);
+		applyPreInterceptor(requestPath, body, oldInstance, context);
 
-		Object newInstance = bodyValidation(resource, body, oldInstance);
+		Object newInstance = bodyValidation(structure, body, oldInstance);
 
-		structure.getJpaRepository().save(newInstance);
+		structure.getJpaRepository().saveAndFlush(newInstance);
 		HTTPPostOkResponse httpPostOkResponse = new HTTPPostOkResponse();
 		httpPostOkResponse.setUuid(resourceId);
-		return applyPostInterceptor(requestPath, httpPostOkResponse);
+		return applyPostInterceptor(requestPath, httpPostOkResponse, context);
 	}
-	
+
 	@Transactional(readOnly = false)
 	public Object update(String resource, String resourceId, String subResource, String subResourceId, String body) {
-		EntityStructure structure = JpaSmartQuerySupport.getStructure(resource);
 		checkSubResource(resource, subResource, null);
-		
+		HashMap<Object, Object> context = new HashMap<Object,Object>();
+		EntityStructure structure = JpaSmartQuerySupport.getStructure(resource);
 		long fetchCount = SmartQuery.fetchCount(resource,
 				"uuid=" + resourceId + "&" + subResource + ".uuid=" + subResourceId);
 		if (fetchCount == 0) {
 			throw new PostFormatException(3330, "数据不存在", "");
 		} else {
-			EntityStructure subResourceStructure = JpaSmartQuerySupport.getStructure(subResourceName(resource, subResource));
+			EntityStructure subResourceStructure = JpaSmartQuerySupport
+					.getStructure(CommonUtils.subResourceName(resource, subResource));
 			Optional oldInstanceOptional = subResourceStructure.getJpaRepository().findById(subResourceId);
 			Object oldInstance = oldInstanceOptional.get();
 			String requestPath = "/" + resource + "/" + resourceId + "/" + subResource + "/" + subResourceId;
-			applyPreInterceptor(requestPath, body, oldInstance);
+			applyPreInterceptor(requestPath, body, oldInstance, context);
 
-			Object newInstance = bodyValidation(subResourceName(resource, subResource), body, oldInstance);
-			subResourceStructure.getJpaRepository().save(newInstance);
+			Object newInstance = bodyValidation(subResourceStructure, body, oldInstance);
+			subResourceStructure.getJpaRepository().saveAndFlush(newInstance);
 			HTTPPostOkResponse httpPostOkResponse = new HTTPPostOkResponse();
 			httpPostOkResponse.setUuid(subResourceId);
-			return applyPostInterceptor(requestPath, httpPostOkResponse);
+			return applyPostInterceptor(requestPath, httpPostOkResponse, context);
 		}
 	}
 
-	private Object subResourceCreate(EntityStructure structure, Object owner, String subResource, String body) {
+//	private HashMap<String,DiffItem> _diff(EntityStructure structure, Object bodyObject, Object oldInstance,boolean ignoreMappedBy) {
+//		Set<String> notNullPropertyNames = CommonUtils.getNotNullPropertyNames(bodyObject);
+//		HashMap diffs = new HashMap<String,DiffItem>();
+//		BeanWrapperImpl beanWrapperImpl = new BeanWrapperImpl(bodyObject);
+//		if (oldInstance == null) {
+//			for (String key : notNullPropertyNames) {
+//				if (structure.getSimpleFields().get(key) != null) {
+//					DiffItem diffItem = new DiffItem();
+//					diffItem.setType(Type.SIMPLE);
+//					diffItem.setOldValue(null);
+//					diffItem.setNewValue(beanWrapperImpl.getPropertyValue(key));
+//					diffs.put(key, diffItem);
+//				} else if (structure.getObjectFields().containsKey(key)) {
+//					
+//					if(!ignoreMappedBy && structure.getObjectFields().get(key).getMappedBy()!=null) {
+//						continue;
+//					}
+//					Class<?> targetEntity = structure.getObjectFields().get(key).getTargetEntity();
+//					EntityStructure targetStructure = JpaSmartQuerySupport.getStructure(targetEntity);
+//					if (beanWrapperImpl.getPropertyValue(key) instanceof Collection) {
+//						Collection collection = (Collection) beanWrapperImpl.getPropertyValue(key);
+//						DiffItem diffItem = new DiffItem();
+//						diffItem.setType(Type.ARRAY);
+//						diffItem.setOldValue(null);
+//						
+//						ArrayList<Map> arrayList = new ArrayList<>();
+//						for (Object c : collection) {
+//							BeanWrapperImpl cWrapperImpl = new BeanWrapperImpl(c);
+//							if (cWrapperImpl.getPropertyValue("uuid") != null) {
+//								HashMap copySimpleProperitesToMap = CommonUtils.copyEntitySimpleProperitesToMap(targetStructure, c);
+//								arrayList.add(copySimpleProperitesToMap);
+//							}
+//						}
+//						diffItem.setNewValue(arrayList);
+//						diffs.put(key, diffItem);
+//					} else {
+//						DiffItem diffItem = new DiffItem();
+//						diffItem.setType(Type.OBJECT);
+//						diffItem.setOldValue(null);
+//						Object uuid = beanWrapperImpl.getPropertyValue(key + ".uuid");
+//						if (uuid != null) {
+//							HashMap copySimpleProperitesToMap = CommonUtils.copyEntitySimpleProperitesToMap(targetStructure, beanWrapperImpl.getPropertyValue(key));
+//							diffItem.setNewValue(copySimpleProperitesToMap);
+//							diffs.put(key, diffItem);
+//						}
+//					}
+//
+//				}
+//			}
+//		} else {
+//
+//		}
+//		return diffs;
+//	}
+
+	private HTTPPostOkResponse subResourceCreate(EntityStructure structure, Object owner, String subResource,
+			String body) {
+
+		HTTPPostOkResponse httpPostOkResponse = new HTTPPostOkResponse();
 		BeanWrapperImpl ownerWrapper = new BeanWrapperImpl(owner);
+		String ownerId = ownerWrapper.getPropertyValue("uuid").toString();
 		ColumnStucture columnStucture = structure.getObjectFields().get(subResource);
 		EntityStructure targetEntityStructure = JpaSmartQuerySupport.getStructure(columnStucture.getTargetEntity());
 		ObjectMapper mapper = new ObjectMapper();
@@ -167,27 +226,37 @@ public class PostService extends BaseService {
 			if (existSubResourceObject != null) {
 				throw new PostFormatException(3220, "资源已经存在", "资源已经存在");
 			}
-			Object bodyObject = withoutIdBodyValidation(targetEntityStructure.getName(), body);
+			Object bodyObject = withoutIdBodyValidation(targetEntityStructure, readObject);
+			Object save;
 			if (columnStucture.getMappedBy() != null) {
 				BeanWrapperImpl bodyObjectWrapper = new BeanWrapperImpl(bodyObject);
 				bodyObjectWrapper.setPropertyValue(columnStucture.getMappedBy(), owner);
-				Object save = targetEntityStructure.getJpaRepository().save(bodyObject);
+				save = targetEntityStructure.getJpaRepository().saveAndFlush(bodyObject);
 				BeanWrapperImpl saveWrapper = new BeanWrapperImpl(save);
 				retUuid = saveWrapper.getPropertyValue("uuid");
 
 			} else {
-				Object subResourceObject = targetEntityStructure.getJpaRepository().save(bodyObject);
-				BeanWrapperImpl saveWrapper = new BeanWrapperImpl(subResourceObject);
+				save = targetEntityStructure.getJpaRepository().saveAndFlush(bodyObject);
+				BeanWrapperImpl saveWrapper = new BeanWrapperImpl(save);
 				retUuid = saveWrapper.getPropertyValue("uuid");
-				ownerWrapper.setPropertyValue(subResource, subResourceObject);
-				structure.getJpaRepository().save(owner);
+				ownerWrapper.setPropertyValue(subResource, save);
+				structure.getJpaRepository().saveAndFlush(owner);
+
+			}
+			Object newInstance;
+			try {
+				newInstance = structure.getEntityClass().newInstance();
+				BeanWrapperImpl newInstanceWrapperImpl = new BeanWrapperImpl(newInstance);
+				newInstanceWrapperImpl.setPropertyValue(subResource, save);
+			} catch (InstantiationException | IllegalAccessException e) {
+				e.printStackTrace();
 			}
 		} else if (joinType.equals(ColumnJoinType.ONE_TO_MANY)) {
-		
-			Object bodyObject = withoutIdBodyValidation(targetEntityStructure.getName(), body);
+
+			Object bodyObject = withoutIdBodyValidation(targetEntityStructure, readObject);
 			BeanWrapperImpl bodyObjectWrapper = new BeanWrapperImpl(bodyObject);
 			bodyObjectWrapper.setPropertyValue(columnStucture.getMappedBy(), owner);
-			Object save = targetEntityStructure.getJpaRepository().save(bodyObject);
+			Object save = targetEntityStructure.getJpaRepository().saveAndFlush(bodyObject);
 			BeanWrapperImpl saveWrapper = new BeanWrapperImpl(save);
 			retUuid = saveWrapper.getPropertyValue("uuid");
 
@@ -199,9 +268,11 @@ public class PostService extends BaseService {
 			if (!subResourceOptional.isPresent()) {
 				throw new PostFormatException(3250, "资源不存在", bodyId);
 			}
+
 			ownerWrapper.setPropertyValue(subResource, subResourceOptional.get());
-			Object save = structure.getJpaRepository().save(owner);
+			Object save = structure.getJpaRepository().saveAndFlush(owner);
 			retUuid = bodyId;
+
 		} else if (joinType.equals(ColumnJoinType.MANY_TO_MANY)) {
 			if (bodyId == null) {
 				throw new PostFormatException(3260, "数据格式异常", "MANY_TO_MANY结构体只能关联，不允许创建");
@@ -215,20 +286,36 @@ public class PostService extends BaseService {
 				BeanWrapperImpl newSubResourceWrapper = new BeanWrapperImpl(newSubResource);
 				Object propertyValue = newSubResourceWrapper.getPropertyValue(columnStucture.getMappedBy());
 				((Set) propertyValue).add(owner);
-				targetEntityStructure.getJpaRepository().save(newSubResource);
+				targetEntityStructure.getJpaRepository().saveAndFlush(newSubResource);
 			} else {
 				Object propertyValue = ownerWrapper.getPropertyValue(subResource);
 				((Set) propertyValue).add(newSubResource);
-				structure.getJpaRepository().save(owner);
+				structure.getJpaRepository().saveAndFlush(owner);
 			}
 			retUuid = bodyId;
 		}
-		return retUuid;
+		httpPostOkResponse.setUuid(retUuid.toString());
+		return httpPostOkResponse;
 	}
 
-	
-	private Object withoutIdBodyValidation(String resource, String body) {
-		EntityStructure structure = JpaSmartQuerySupport.getStructure(resource);
+	private Object withoutIdBodyValidation(EntityStructure structure, Object body) {
+
+		BeanWrapperImpl readWrapper = new BeanWrapperImpl(body);
+		Object uuid = readWrapper.getPropertyValue("uuid");
+		if (uuid != null) {
+			throw new PostFormatException(3040, "数据格式异常", "创建对象不允许带uuid");
+		}
+		Map<String, String> validate = CommonUtils.validate(body);
+		if (!validate.isEmpty()) {
+
+			throw new PostFormatException(1000, "数据格式错误", validate);
+		}
+		return body;
+
+	}
+
+	private Object withoutIdBodyValidation(EntityStructure structure, String body) {
+
 		try {
 			ObjectMapper mapper = new ObjectMapper();
 			Object readObject = mapper.readValue(body, structure.getEntityClass());
@@ -249,8 +336,24 @@ public class PostService extends BaseService {
 		}
 	}
 
-	private Object bodyValidation(String resource, String body, Object old) {
-		EntityStructure structure = JpaSmartQuerySupport.getStructure(resource);
+	private Object bodyValidation(EntityStructure structure, String body) {
+
+		try {
+			ObjectMapper mapper = new ObjectMapper();
+			Object readObject = mapper.readValue(body, structure.getEntityClass());
+			BeanWrapperImpl readWrapper = new BeanWrapperImpl(readObject);
+			Map<String, String> validate = CommonUtils.validate(readObject);
+			if (!validate.isEmpty()) {
+				throw new PostFormatException(1000, "数据格式错误", validate);
+			}
+			return readObject;
+		} catch (IOException e) {
+			e.printStackTrace();
+			throw new PostFormatException(3010, "数据格式异常", "json解析错误");
+		}
+	}
+
+	private Object bodyValidation(EntityStructure structure, String body, Object old) {
 		try {
 			ObjectMapper mapper = new ObjectMapper();
 			Object readObject = mapper.readValue(body, structure.getEntityClass());
@@ -266,9 +369,7 @@ public class PostService extends BaseService {
 		}
 	}
 
-
-
-	private boolean applyPreInterceptor(String requestPath, String body, Object oldInstance) {
+	private boolean applyPreInterceptor(String requestPath, String body, Object oldInstance , Map<Object,Object> context) {
 		if (this.interceptors != null && this.interceptors.size() != 0) {
 
 			PathMatcher matcher = new AntPathMatcher();
@@ -284,7 +385,7 @@ public class PostService extends BaseService {
 				if (!matcher.match(patternPath, requestPath)) {
 					continue;
 				}
-				if (!interceptor.preHandle(requestPath, body, oldInstance)) {
+				if (!interceptor.preHandle(requestPath, body, oldInstance , context)) {
 					throw new BusinessException(2000, "数据被拦截", "路径：" + interceptor.path());
 				}
 			}
@@ -292,7 +393,7 @@ public class PostService extends BaseService {
 		return true;
 	}
 
-	private Object applyPostInterceptor(String requestPath, Object httpPostOkResponse) {
+	private Object applyPostInterceptor(String requestPath, HTTPPostOkResponse httpPostOkResponse, Map<Object,Object> context) {
 		if (this.interceptors != null && this.interceptors.size() != 0) {
 
 			PathMatcher matcher = new AntPathMatcher();
@@ -306,7 +407,7 @@ public class PostService extends BaseService {
 				if (!matcher.match(patternPath, requestPath)) {
 					continue;
 				}
-				httpPostOkResponse = interceptor.postHandle(requestPath, httpPostOkResponse);
+				httpPostOkResponse = interceptor.postHandle(requestPath, httpPostOkResponse, context);
 			}
 		}
 		return httpPostOkResponse;
@@ -318,7 +419,5 @@ public class PostService extends BaseService {
 		this.interceptors = applicationContext.getBeansOfType(JpaRestfulPostInterceptor.class);
 
 	}
-
-
 
 }
