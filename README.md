@@ -1,4 +1,4 @@
-# spring-jpa-restful
+# spring-jpa-restful-core
 jpa的Entity自动资源化
 
 ## 本项目为maven项目，基于spring-data-jpa 和 spring-jpa-mysql-smart-query

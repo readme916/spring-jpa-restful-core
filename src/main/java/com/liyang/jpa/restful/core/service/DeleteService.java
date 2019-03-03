@@ -223,7 +223,8 @@ public class DeleteService extends BaseService {
 		return true;
 	}
 
-	private Object applyPostInterceptor(String requestPath, Object httpPostOkResponse, Map<Object,Object> context) {
+	
+	private HTTPPostOkResponse applyPostInterceptor(String requestPath, HTTPPostOkResponse httpPostOkResponse, Map<Object,Object> context) {
 		if (this.interceptors != null && this.interceptors.size() != 0) {
 
 			PathMatcher matcher = new AntPathMatcher();
