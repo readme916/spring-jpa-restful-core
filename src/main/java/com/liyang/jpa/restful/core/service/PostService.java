@@ -144,60 +144,6 @@ public class PostService extends BaseService {
 		}
 	}
 
-//	private HashMap<String,DiffItem> _diff(EntityStructure structure, Object bodyObject, Object oldInstance,boolean ignoreMappedBy) {
-//		Set<String> notNullPropertyNames = CommonUtils.getNotNullPropertyNames(bodyObject);
-//		HashMap diffs = new HashMap<String,DiffItem>();
-//		BeanWrapperImpl beanWrapperImpl = new BeanWrapperImpl(bodyObject);
-//		if (oldInstance == null) {
-//			for (String key : notNullPropertyNames) {
-//				if (structure.getSimpleFields().get(key) != null) {
-//					DiffItem diffItem = new DiffItem();
-//					diffItem.setType(Type.SIMPLE);
-//					diffItem.setOldValue(null);
-//					diffItem.setNewValue(beanWrapperImpl.getPropertyValue(key));
-//					diffs.put(key, diffItem);
-//				} else if (structure.getObjectFields().containsKey(key)) {
-//					
-//					if(!ignoreMappedBy && structure.getObjectFields().get(key).getMappedBy()!=null) {
-//						continue;
-//					}
-//					Class<?> targetEntity = structure.getObjectFields().get(key).getTargetEntity();
-//					EntityStructure targetStructure = JpaSmartQuerySupport.getStructure(targetEntity);
-//					if (beanWrapperImpl.getPropertyValue(key) instanceof Collection) {
-//						Collection collection = (Collection) beanWrapperImpl.getPropertyValue(key);
-//						DiffItem diffItem = new DiffItem();
-//						diffItem.setType(Type.ARRAY);
-//						diffItem.setOldValue(null);
-//						
-//						ArrayList<Map> arrayList = new ArrayList<>();
-//						for (Object c : collection) {
-//							BeanWrapperImpl cWrapperImpl = new BeanWrapperImpl(c);
-//							if (cWrapperImpl.getPropertyValue("uuid") != null) {
-//								HashMap copySimpleProperitesToMap = CommonUtils.copyEntitySimpleProperitesToMap(targetStructure, c);
-//								arrayList.add(copySimpleProperitesToMap);
-//							}
-//						}
-//						diffItem.setNewValue(arrayList);
-//						diffs.put(key, diffItem);
-//					} else {
-//						DiffItem diffItem = new DiffItem();
-//						diffItem.setType(Type.OBJECT);
-//						diffItem.setOldValue(null);
-//						Object uuid = beanWrapperImpl.getPropertyValue(key + ".uuid");
-//						if (uuid != null) {
-//							HashMap copySimpleProperitesToMap = CommonUtils.copyEntitySimpleProperitesToMap(targetStructure, beanWrapperImpl.getPropertyValue(key));
-//							diffItem.setNewValue(copySimpleProperitesToMap);
-//							diffs.put(key, diffItem);
-//						}
-//					}
-//
-//				}
-//			}
-//		} else {
-//
-//		}
-//		return diffs;
-//	}
 
 	private HTTPPostOkResponse subResourceCreate(EntityStructure structure, Object owner, String subResource,
 			String body) {
