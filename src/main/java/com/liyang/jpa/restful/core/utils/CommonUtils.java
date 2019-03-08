@@ -17,7 +17,9 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.liyang.jpa.mysql.config.JpaSmartQuerySupport;
 import com.liyang.jpa.mysql.db.structure.ColumnStucture;
@@ -33,67 +35,60 @@ public class CommonUtils {
 		return subStructure.getName();
 	}
 
-	
-	public static String objectToString(Object object) {
+	public static String objectToString(Object object) throws JsonProcessingException {
 
 		ObjectMapper objectMapper = new ObjectMapper();
 		String writeValueAsString = null;
-		try {
-			writeValueAsString = objectMapper.writeValueAsString(object);
-		} catch (JsonProcessingException e) {
-			e.printStackTrace();
-		}
+
+		writeValueAsString = objectMapper.writeValueAsString(object);
+
 		return writeValueAsString;
 	}
 
-	public static <T> T stringToObject(String jsonString, Class<T> clazz) {
+	public static <T> T stringToObject(String jsonString, Class<T> clazz)
+			throws JsonParseException, JsonMappingException, IOException {
 
 		ObjectMapper objectMapper = new ObjectMapper();
-		try {
-			return objectMapper.readValue(jsonString, clazz);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return null;
+
+		return objectMapper.readValue(jsonString, clazz);
+
 	}
-	
-	public static Object mapToObject (Map<String, Object> map, Class<?> beanClass) throws Exception {
-        if (map == null) {
-            return null;
-        }
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        Object obj = objectMapper.convertValue(map, beanClass);  
-
-        return obj;
-    }
-
-    public static Map<String, Object> objectToMap (Object obj) {
-        if (obj == null) {
-            return null;
-        }
-
-        ObjectMapper objectMapper = new ObjectMapper();
-        Map<String, Object> mappedObject = objectMapper.convertValue(obj, Map.class);
-
-        return mappedObject;
-    }
-    public static Map<String, Object> stringToMap (String str) {
-        if (str == null) {
-            return null;
-        }
-
-        ObjectMapper objectMapper = new ObjectMapper();
-        Map<String, Object> mappedObject = null;
-		try {
-			mappedObject = objectMapper.readValue(str, Map.class);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+	public static <T> T mapToObject(Map<String, Object> map, Class<T> beanClass) throws IOException {
+		if (map == null) {
+			return null;
 		}
 
-        return mappedObject;
-    }
+		ObjectMapper objectMapper = new ObjectMapper();
+		T obj = objectMapper.convertValue(map, beanClass);
+
+		return obj;
+	}
+
+	public static Map<String, Object> objectToMap(Object obj) {
+		if (obj == null) {
+			return null;
+		}
+
+		ObjectMapper objectMapper = new ObjectMapper();
+		Map<String, Object> mappedObject = objectMapper.convertValue(obj, Map.class);
+
+		return mappedObject;
+	}
+
+	public static Map<String, Object> stringToMap(String str)
+			throws JsonParseException, JsonMappingException, IOException {
+		if (str == null) {
+			return null;
+		}
+
+		ObjectMapper objectMapper = new ObjectMapper();
+		Map<String, Object> mappedObject = null;
+
+		mappedObject = objectMapper.readValue(str, Map.class);
+
+		return mappedObject;
+	}
 
 	public static HashMap<String, String> validate(Object object) {
 
