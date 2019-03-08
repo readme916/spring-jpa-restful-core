@@ -39,21 +39,21 @@ public class PostService extends BaseService {
 	@Transactional(readOnly = false)
 	public Object create(String resource, String body) {
 		checkResource(resource, null);
-		Map<String, Object> bodyToMap=null;
+		Map<String, Object> bodyToMap = null;
 		try {
 			bodyToMap = CommonUtils.stringToMap(body);
 		} catch (IOException e) {
 			e.printStackTrace();
 			throw new PostFormatException(3281, "数据格式异常", "json解析错误");
 		}
-		HashMap<Object, Object> context = new HashMap<Object,Object>();
+		HashMap<Object, Object> context = new HashMap<Object, Object>();
 		String requestPath = "/" + resource;
 		applyPreInterceptor(requestPath, bodyToMap, null, context);
 
 		EntityStructure structure = JpaSmartQuerySupport.getStructure(resource);
 		Object readObject = withoutIdBodyValidation(structure, bodyToMap);
 		Object save = structure.getJpaRepository().saveAndFlush(readObject);
-		
+
 		BeanWrapperImpl saveImpl = new BeanWrapperImpl(save);
 		Object savedUUID = saveImpl.getPropertyValue("uuid");
 		HTTPPostOkResponse httpPostOkResponse = new HTTPPostOkResponse();
@@ -64,14 +64,14 @@ public class PostService extends BaseService {
 	@Transactional(readOnly = false)
 	public Object create(String resource, String resourceId, String subResource, String body) {
 		checkResource(resource, null);
-		Map<String, Object> bodyToMap=null;
+		Map<String, Object> bodyToMap = null;
 		try {
 			bodyToMap = CommonUtils.stringToMap(body);
 		} catch (IOException e) {
 			e.printStackTrace();
 			throw new PostFormatException(3282, "数据格式异常", "json解析错误");
 		}
-		HashMap<Object, Object> context = new HashMap<Object,Object>();
+		HashMap<Object, Object> context = new HashMap<Object, Object>();
 		EntityStructure structure = JpaSmartQuerySupport.getStructure(resource);
 		Object owner;
 		Optional ownerOptional = structure.getJpaRepository().findById(resourceId);
@@ -92,14 +92,14 @@ public class PostService extends BaseService {
 	public Object create(String resource, String resourceId, String subResource, String subResourceId,
 			String subsubResource, String body) {
 		checkSubResource(resource, subResource, null);
-		Map<String, Object> bodyToMap=null;
+		Map<String, Object> bodyToMap = null;
 		try {
 			bodyToMap = CommonUtils.stringToMap(body);
 		} catch (IOException e) {
 			e.printStackTrace();
 			throw new PostFormatException(3283, "数据格式异常", "json解析错误");
 		}
-		HashMap<Object, Object> context = new HashMap<Object,Object>();
+		HashMap<Object, Object> context = new HashMap<Object, Object>();
 		long fetchCount = SmartQuery.fetchCount(resource,
 				"uuid=" + resourceId + "&" + subResource + ".uuid=" + subResourceId);
 		if (fetchCount == 0) {
@@ -120,14 +120,14 @@ public class PostService extends BaseService {
 	@Transactional(readOnly = false)
 	public Object update(String resource, String resourceId, String body) {
 		checkResource(resource, null);
-		Map<String, Object> bodyToMap=null;
+		Map<String, Object> bodyToMap = null;
 		try {
 			bodyToMap = CommonUtils.stringToMap(body);
 		} catch (IOException e) {
 			e.printStackTrace();
 			throw new PostFormatException(3284, "数据格式异常", "json解析错误");
 		}
-		HashMap<Object, Object> context = new HashMap<Object,Object>();
+		HashMap<Object, Object> context = new HashMap<Object, Object>();
 		EntityStructure structure = JpaSmartQuerySupport.getStructure(resource);
 		Object oldInstance;
 		Optional oldInstanceOptional = structure.getJpaRepository().findById(resourceId);
@@ -150,14 +150,14 @@ public class PostService extends BaseService {
 	@Transactional(readOnly = false)
 	public Object update(String resource, String resourceId, String subResource, String subResourceId, String body) {
 		checkSubResource(resource, subResource, null);
-		Map<String, Object> bodyToMap=null;
+		Map<String, Object> bodyToMap = null;
 		try {
 			bodyToMap = CommonUtils.stringToMap(body);
 		} catch (IOException e) {
 			e.printStackTrace();
 			throw new PostFormatException(3285, "数据格式异常", "json解析错误");
 		}
-		HashMap<Object, Object> context = new HashMap<Object,Object>();
+		HashMap<Object, Object> context = new HashMap<Object, Object>();
 		EntityStructure structure = JpaSmartQuerySupport.getStructure(resource);
 		long fetchCount = SmartQuery.fetchCount(resource,
 				"uuid=" + resourceId + "&" + subResource + ".uuid=" + subResourceId);
@@ -178,7 +178,6 @@ public class PostService extends BaseService {
 			return applyPostInterceptor(requestPath, httpPostOkResponse, context);
 		}
 	}
-
 
 	private HTTPPostOkResponse subResourceCreate(EntityStructure structure, Object owner, String subResource,
 			Map<String, Object> bodyToMap) {
@@ -298,7 +297,7 @@ public class PostService extends BaseService {
 	private Object withoutIdBodyValidation(EntityStructure structure, Map<String, Object> bodyToMap) {
 
 		try {
-			Object readObject =  CommonUtils.mapToObject(bodyToMap, structure.getEntityClass());
+			Object readObject = CommonUtils.mapToObject(bodyToMap, structure.getEntityClass());
 			BeanWrapperImpl readWrapper = new BeanWrapperImpl(readObject);
 			Object uuid = readWrapper.getPropertyValue("uuid");
 			if (uuid != null) {
@@ -347,7 +346,8 @@ public class PostService extends BaseService {
 		}
 	}
 
-	private boolean applyPreInterceptor(String requestPath, Map<String, Object> body, Object oldInstance , Map<Object,Object> context) {
+	private boolean applyPreInterceptor(String requestPath, Map<String, Object> body, Object oldInstance,
+			Map<Object, Object> context) {
 		if (this.interceptors != null && this.interceptors.size() != 0) {
 
 			PathMatcher matcher = new AntPathMatcher();
@@ -359,11 +359,14 @@ public class PostService extends BaseService {
 			for (int i = 0; i < interceptors.length; i++) {
 				JpaRestfulPostInterceptor interceptor = interceptors[i];
 
-				String patternPath = interceptor.path();
-				if (!matcher.match(patternPath, requestPath)) {
-					continue;
+				String[] patternPath = interceptor.path();
+				boolean matched = false;
+				for (String pattern : patternPath) {
+					if (matcher.match(pattern, requestPath)) {
+						matched = true;
+					}
 				}
-				if (!interceptor.preHandle(requestPath, body, oldInstance , context)) {
+				if (matched && !interceptor.preHandle(requestPath, body, oldInstance, context)) {
 					throw new BusinessException(2000, "数据被拦截", "路径：" + interceptor.path());
 				}
 			}
@@ -371,7 +374,8 @@ public class PostService extends BaseService {
 		return true;
 	}
 
-	private Object applyPostInterceptor(String requestPath, HTTPPostOkResponse httpPostOkResponse, Map<Object,Object> context) {
+	private Object applyPostInterceptor(String requestPath, HTTPPostOkResponse httpPostOkResponse,
+			Map<Object, Object> context) {
 		if (this.interceptors != null && this.interceptors.size() != 0) {
 
 			PathMatcher matcher = new AntPathMatcher();
@@ -381,11 +385,16 @@ public class PostService extends BaseService {
 			Arrays.sort(interceptors, new InterceptorComparator());
 			for (int i = interceptors.length - 1; i >= 0; i--) {
 				JpaRestfulPostInterceptor interceptor = interceptors[i];
-				String patternPath = interceptor.path();
-				if (!matcher.match(patternPath, requestPath)) {
-					continue;
+				String[] patternPath = interceptor.path();
+				boolean matched = false;
+				for (String pattern : patternPath) {
+					if (matcher.match(pattern, requestPath)) {
+						matched = true;
+					}
 				}
-				httpPostOkResponse = interceptor.postHandle(requestPath, httpPostOkResponse, context);
+				if (matched) {
+					httpPostOkResponse = interceptor.postHandle(requestPath, httpPostOkResponse, context);
+				}
 			}
 		}
 		return httpPostOkResponse;

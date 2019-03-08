@@ -60,8 +60,8 @@ import com.liyang.jpa.restful.core.interceptor.JpaRestfulPostInterceptor;
 import com.liyang.jpa.restful.core.utils.CommonUtils;
 
 @Controller
-@RequestMapping("/${spring.jpa.restful.structure-path}")
-@ConditionalOnProperty(name = {"spring.jpa.restful.structure-path","spring.jpa.restful.path"})
+@RequestMapping("${spring.jpa.restful.structure-path}")
+@ConditionalOnProperty(name = { "spring.jpa.restful.structure-path", "spring.jpa.restful.path" })
 public class StructureShowController {
 	protected final static Logger logger = LoggerFactory.getLogger(StructureShowController.class);
 
@@ -76,7 +76,7 @@ public class StructureShowController {
 
 	@Autowired(required = false)
 	private List<JpaRestfulPostInterceptor> posts;
-	
+
 	@Autowired(required = false)
 	private List<JpaRestfulDeleteInterceptor> deletes;
 
@@ -119,9 +119,9 @@ public class StructureShowController {
 		postDescription.setMethod("POST");
 		postDescription.setDescription("创建" + resource + "资源，格式见下");
 		fullResource.setMethods(Arrays.asList(new MethodDescription[] { getDescription, postDescription }));
-		fullResource.setInterceptors(_interceptorParse(fullResource.getResourceUri(),true,false));
+		fullResource.setInterceptors(_interceptorParse(fullResource.getResourceUri(), true, false));
 		Field[] declaredFields = entityClass.getDeclaredFields();
-		fillFields(declaredFields, fullResource, "/" + path + "/" + resource,true);
+		fillFields(declaredFields, fullResource, "/" + path + "/" + resource, true);
 
 		HashMap<String, Object> postStructure = fullResource.getPostStructure();
 		ObjectMapper mapper = new ObjectMapper();
@@ -143,7 +143,7 @@ public class StructureShowController {
 		for (Entry<String, ColumnStucture> entry : entrySet) {
 			fullResource.getRelativeUri().add("/" + path + "/" + resource + "/{id}/" + entry.getKey());
 		}
-		
+
 		fullResource.setTitle(resource + " - 主资源（对象）");
 		MethodDescription getDescription = new MethodDescription();
 		getDescription.setMethod("GET");
@@ -159,8 +159,8 @@ public class StructureShowController {
 		fullResource.setMethods(
 				Arrays.asList(new MethodDescription[] { getDescription, postDescription, deleteDescription }));
 		fullResource.setResourceUri("/" + path + "/" + resource + "/{id}");
-		fullResource.setInterceptors(_interceptorParse(fullResource.getResourceUri(),true,true));
-		fillFields(declaredFields, fullResource, "/" + path + "/" + resource,true);
+		fullResource.setInterceptors(_interceptorParse(fullResource.getResourceUri(), true, true));
+		fillFields(declaredFields, fullResource, "/" + path + "/" + resource, true);
 		HashMap<String, Object> postStructure = fullResource.getPostStructure();
 		ObjectMapper mapper = new ObjectMapper();
 		String writeValueAsString = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(postStructure);
@@ -184,15 +184,14 @@ public class StructureShowController {
 		Field[] declaredFields = entityClass.getDeclaredFields();
 
 		FullResource fullResource = new FullResource();
-		
-		if(parentStructure){
+
+		if (parentStructure) {
 			fullResource.getRelativeUri().add("/" + path + "/" + resource + "/{id}/" + subResource + "/{id}");
 		}
 		fullResource.setResourceUri("/" + path + "/" + resource + "/{id}/" + subResource);
 
 		fullResource.setTitle(subResource + " - 桥接资源（列表）");
 
-		
 		ArrayList<MethodDescription> methods = new ArrayList<MethodDescription>();
 		if (parentStructure) {
 			MethodDescription getDescription = new MethodDescription();
@@ -202,16 +201,17 @@ public class StructureShowController {
 		}
 		MethodDescription postDescription = new MethodDescription();
 		postDescription.setMethod("POST");
-		if(parentStructure){
-			postDescription.setDescription("给主资源"+resource+"的桥接资源" + subResource + "中新增对象,结构体不带id");
-		}else{
-			postDescription.setDescription("给主资源"+resource+"和桥接资源" + subResource + "中新增关联（多对多）或者改变关联（多对一）,结构体必须带id");
+		if (parentStructure) {
+			postDescription.setDescription("给主资源" + resource + "的桥接资源" + subResource + "中新增对象,结构体不带id");
+		} else {
+			postDescription
+					.setDescription("给主资源" + resource + "和桥接资源" + subResource + "中新增关联（多对多）或者改变关联（多对一）,结构体必须带id");
 		}
 		methods.add(postDescription);
 
 		fullResource.setMethods(methods);
-		fullResource.setInterceptors(_interceptorParse(fullResource.getResourceUri(),parentStructure,false));
-		fillFields(declaredFields, fullResource, "/" + path + "/" + resource + "/{id}/" + subResource , parentStructure);
+		fullResource.setInterceptors(_interceptorParse(fullResource.getResourceUri(), parentStructure, false));
+		fillFields(declaredFields, fullResource, "/" + path + "/" + resource + "/{id}/" + subResource, parentStructure);
 		HashMap<String, Object> postStructure = fullResource.getPostStructure();
 		ObjectMapper mapper = new ObjectMapper();
 		String writeValueAsString = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(postStructure);
@@ -244,13 +244,13 @@ public class StructureShowController {
 		fullResource.setResourceUri("/" + path + "/" + resource + "/{id}/" + subResource + "/{id}");
 
 		fullResource.setTitle(subResource + " - 桥接资源（对象）");
-		
+
 		ArrayList<MethodDescription> methods = new ArrayList<MethodDescription>();
 		MethodDescription getDescription = new MethodDescription();
 		getDescription.setMethod("GET");
 		getDescription.setDescription("桥接资源" + subResource + "的对象，可带附加对象");
 		methods.add(getDescription);
-		
+
 		MethodDescription postDescription = new MethodDescription();
 		postDescription.setMethod("POST");
 		postDescription.setDescription("更新子资源，格式见后");
@@ -261,8 +261,8 @@ public class StructureShowController {
 		methods.add(deleteDescription);
 		fullResource.setMethods(methods);
 
-		fullResource.setInterceptors(_interceptorParse(fullResource.getResourceUri(),parentStructure,true));
-		fillFields(declaredFields, fullResource, "/" + path + "/" + resource + "/{id}/" + subResource , parentStructure);
+		fullResource.setInterceptors(_interceptorParse(fullResource.getResourceUri(), parentStructure, true));
+		fillFields(declaredFields, fullResource, "/" + path + "/" + resource + "/{id}/" + subResource, parentStructure);
 		HashMap<String, Object> postStructure = fullResource.getPostStructure();
 		ObjectMapper mapper = new ObjectMapper();
 		String writeValueAsString = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(postStructure);
@@ -277,14 +277,15 @@ public class StructureShowController {
 			throws JsonProcessingException {
 		Class<?> entityClass = JpaSmartQuerySupport.getStructure(resource).getObjectFields().get(subResource)
 				.getTargetEntity();
-		
-		ColumnStucture columnStucture = JpaSmartQuerySupport.getStructure(entityClass).getObjectFields().get(subsubResource);
+
+		ColumnStucture columnStucture = JpaSmartQuerySupport.getStructure(entityClass).getObjectFields()
+				.get(subsubResource);
 		boolean parentStructure = false;
 		if (columnStucture.getJoinType().equals(ColumnJoinType.ONE_TO_MANY)
 				|| columnStucture.getJoinType().equals(ColumnJoinType.ONE_TO_ONE)) {
 			parentStructure = true;
 		}
-		
+
 		entityClass = columnStucture.getTargetEntity();
 		Field[] declaredFields = entityClass.getDeclaredFields();
 		FullResource fullResource = new FullResource();
@@ -303,16 +304,17 @@ public class StructureShowController {
 		}
 		MethodDescription postDescription = new MethodDescription();
 		postDescription.setMethod("POST");
-		if(parentStructure){
+		if (parentStructure) {
 			postDescription.setDescription("给桥接资源" + subsubResource + "中新增对象,结构体不带id");
-		}else{
+		} else {
 			postDescription.setDescription("给桥接资源" + subsubResource + "中新增关联（多对多）或者改变关联（多对一）,结构体必须带id");
 		}
 		methods.add(postDescription);
 
 		fullResource.setMethods(methods);
-		fullResource.setInterceptors(_interceptorParse(fullResource.getResourceUri(),parentStructure,false));
-		fillFields(declaredFields, fullResource, "/" + path + "/" + resource + "/{id}/" + subResource + "/{id}/" + subsubResource , false);
+		fullResource.setInterceptors(_interceptorParse(fullResource.getResourceUri(), parentStructure, false));
+		fillFields(declaredFields, fullResource,
+				"/" + path + "/" + resource + "/{id}/" + subResource + "/{id}/" + subsubResource, false);
 		HashMap<String, Object> postStructure = fullResource.getPostStructure();
 		ObjectMapper mapper = new ObjectMapper();
 		String writeValueAsString = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(postStructure);
@@ -321,7 +323,8 @@ public class StructureShowController {
 		return "restful_structure";
 	}
 
-	private void fillFields(Field[] declaredFields, FullResource fullResource, String relativePath,boolean parentStructure) {
+	private void fillFields(Field[] declaredFields, FullResource fullResource, String relativePath,
+			boolean parentStructure) {
 		for (Field field : declaredFields) {
 
 			JsonIgnore ignoreAnnotation = field.getDeclaredAnnotation(JsonIgnore.class);
@@ -338,7 +341,7 @@ public class StructureShowController {
 
 				fullResource.getPostStructure().put(field.getName(), _defautlValue(field));
 			} else {
-				if(parentStructure){
+				if (parentStructure) {
 					objectProperty.setResourceUri(relativePath + "/{id}/" + field.getName());
 				}
 			}
@@ -371,46 +374,60 @@ public class StructureShowController {
 		}
 	}
 
-	private HashMap<String, List<Interceptor>> _interceptorParse(String resourceUri, boolean parentStructure,boolean delete) {
+	private HashMap<String, List<Interceptor>> _interceptorParse(String resourceUri, boolean parentStructure,
+			boolean delete) {
 		String replace = resourceUri.replace("/" + path, "");
 
 		ArrayList<Interceptor> getList = new ArrayList<Interceptor>();
 		ArrayList<Interceptor> postList = new ArrayList<Interceptor>();
 		ArrayList<Interceptor> deleteList = new ArrayList<Interceptor>();
-		PathMatcher matcher = new AntPathMatcher();
+		
 
 		if (this.gets != null) {
 			for (JpaRestfulGetInterceptor interceptor : this.gets) {
-				if (matcher.match(interceptor.path(), replace)) {
-					getList.add(new Interceptor(interceptor.name(), interceptor.description(), interceptor.path(),interceptor.order()));
+				if (_match(interceptor.path(), replace)) {
+					getList.add(new Interceptor(interceptor.name(), interceptor.description(), String.join(",", interceptor.path()),
+							interceptor.order()));
 				}
 			}
 		}
 		if (this.posts != null) {
 			for (JpaRestfulPostInterceptor interceptor : this.posts) {
-				if (matcher.match(interceptor.path(), replace)) {
-					postList.add(new Interceptor(interceptor.name(), interceptor.description(), interceptor.path(),interceptor.order()));
+				if (_match(interceptor.path(), replace)) {
+					postList.add(new Interceptor(interceptor.name(), interceptor.description(),String.join(",", interceptor.path()),
+							interceptor.order()));
 				}
 			}
 		}
 		if (this.deletes != null) {
 			for (JpaRestfulDeleteInterceptor interceptor : this.deletes) {
-				if (matcher.match(interceptor.path(), replace)) {
-					deleteList.add(new Interceptor(interceptor.name(), interceptor.description(), interceptor.path(),interceptor.order()));
+				if (_match(interceptor.path(), replace)) {
+					deleteList.add(new Interceptor(interceptor.name(), interceptor.description(), String.join(",", interceptor.path()),
+							interceptor.order()));
 				}
 			}
 		}
 		HashMap<String, List<Interceptor>> hashMap = new HashMap<String, List<Interceptor>>();
-		if(parentStructure){
+		if (parentStructure) {
 			hashMap.put("GET", getList);
 		}
 		hashMap.put("POST", postList);
-		if(delete){
+		if (delete) {
 			hashMap.put("DELETE", deleteList);
 		}
 		return hashMap;
 	}
 
+	private boolean _match(String[] pattern , String path) {
+		PathMatcher matcher = new AntPathMatcher();
+		for (String str : pattern) {
+			if(matcher.match(str, path)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	private String _relationshipParse(Field field) {
 		ManyToOne manyToOneAnnotation = field.getDeclaredAnnotation(ManyToOne.class);
 		ManyToMany manyToManyAnnotation = field.getDeclaredAnnotation(ManyToMany.class);
@@ -661,13 +678,13 @@ public class StructureShowController {
 		private String path;
 
 		private int order;
-		
-		public Interceptor(String name, String description, String path,int order) {
+
+		public Interceptor(String name, String description, String path, int order) {
 			super();
 			this.name = name;
 			this.description = description;
 			this.path = path;
-			this.order= order;
+			this.order = order;
 		}
 
 		public int getOrder() {

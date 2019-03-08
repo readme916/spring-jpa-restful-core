@@ -134,11 +134,16 @@ public class GetService extends BaseService {
 			
 			for (int i = interceptors.length - 1; i >= 0; i--) {
 				JpaRestfulGetInterceptor interceptor = interceptors[i];
-				String patternPath = interceptor.path();
-				if (!matcher.match(patternPath, requestPath)) {
-					continue;
+				String[] patternPath = interceptor.path();
+				boolean matched = false;
+				for (String pattern : patternPath) {
+					if (matcher.match(pattern, requestPath)) {
+						matched = true;
+					}
 				}
-				fetchList = interceptor.postHandle(requestPath , fetchList, context);
+				if (matched) {
+					fetchList = interceptor.postHandle(requestPath , fetchList, context);
+				}
 			}
 		}
 		return fetchList;
@@ -160,11 +165,14 @@ public class GetService extends BaseService {
 			for (int i = 0; i < interceptors.length; i++) {
 				JpaRestfulGetInterceptor interceptor = interceptors[i];
 
-				String patternPath = interceptor.path();
-				if (!matcher.match(patternPath, requestPath)) {
-					continue;
+				String[] patternPath = interceptor.path();
+				boolean matched = false;
+				for (String pattern : patternPath) {
+					if (matcher.match(pattern, requestPath)) {
+						matched = true;
+					}
 				}
-				if (!interceptor.preHandle(requestPath, params, context)) {
+				if (matched && !interceptor.preHandle(requestPath, params, context)) {
 					throw new BusinessException(2000, "数据被拦截", "路径："+interceptor.path());
 				}
 			}

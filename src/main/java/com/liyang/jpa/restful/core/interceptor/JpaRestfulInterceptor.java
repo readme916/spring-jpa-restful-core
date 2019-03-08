@@ -6,7 +6,7 @@ public interface JpaRestfulInterceptor {
 
 	String description();
 
-	String path();
+	String[] path();
 
 	int order();
 

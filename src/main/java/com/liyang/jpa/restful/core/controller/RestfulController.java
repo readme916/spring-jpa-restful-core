@@ -18,7 +18,7 @@ import com.liyang.jpa.restful.core.service.GetService;
 import com.liyang.jpa.restful.core.service.PostService;
 
 @RestController
-@RequestMapping("/${spring.jpa.restful.path}")
+@RequestMapping("${spring.jpa.restful.path}")
 @ConditionalOnProperty(name = "spring.jpa.restful.path")
 public class RestfulController {
 	protected final static Logger logger = LoggerFactory.getLogger(RestfulController.class);
