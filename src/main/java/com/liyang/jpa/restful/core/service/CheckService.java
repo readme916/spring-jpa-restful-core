@@ -12,8 +12,8 @@ import org.springframework.core.ResolvableType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 
-import com.liyang.jpa.mysql.config.ApplicationContextSupport;
 import com.liyang.jpa.mysql.exception.StructureException;
+import com.liyang.jpa.mysql.service.ApplicationContextSupport;
 import com.liyang.jpa.restful.core.annotation.JpaRestfulResource;
 import com.liyang.jpa.restful.core.domain.BaseEntity;
 

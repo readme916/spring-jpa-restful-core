@@ -10,14 +10,14 @@ import java.lang.annotation.Target;
 import org.springframework.context.annotation.Import;
 
 import com.liyang.jpa.mysql.annotation.EnableJpaSmartQuery;
-import com.liyang.jpa.mysql.config.ApplicationContextSupport;
 import com.liyang.jpa.mysql.config.JpaSmartQuerySupport;
+import com.liyang.jpa.mysql.service.ApplicationContextSupport;
 import com.liyang.jpa.restful.core.config.JpaRestfulSupport;
 
 @Retention(RUNTIME)
 @Target(ElementType.TYPE)
 @Inherited
-@Import({ApplicationContextSupport.class,JpaSmartQuerySupport.class,JpaRestfulSupport.class})
+@Import({JpaSmartQuerySupport.class,JpaRestfulSupport.class})
 public @interface EnableJpaRestful {
 
 }
