@@ -2,8 +2,6 @@ package com.liyang.jpa.restful.core.service;
 
 import java.util.Map;
 
-import javax.persistence.Table;
-
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
@@ -12,10 +10,9 @@ import org.springframework.core.ResolvableType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 
-import com.liyang.jpa.mysql.exception.StructureException;
-import com.liyang.jpa.mysql.service.ApplicationContextSupport;
 import com.liyang.jpa.restful.core.annotation.JpaRestfulResource;
 import com.liyang.jpa.restful.core.domain.BaseEntity;
+import com.liyang.jpa.smart.query.exception.StructureException;
 
 @Service
 public class CheckService implements ApplicationContextAware,InitializingBean  {

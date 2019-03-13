@@ -1,36 +1,25 @@
 package com.liyang.jpa.restful.core.service;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.PathMatcher;
-import org.springframework.web.bind.annotation.RequestParam;
 
-import com.fasterxml.jackson.databind.deser.Deserializers.Base;
-import com.liyang.jpa.mysql.db.SmartQuery;
-import com.liyang.jpa.mysql.exception.GetFormatException;
-import com.liyang.jpa.restful.core.annotation.JpaRestfulResource;
-import com.liyang.jpa.restful.core.config.JpaRestfulSupport;
-import com.liyang.jpa.restful.core.exception.BusinessException;
-import com.liyang.jpa.restful.core.exception.PostFormatException;
+import com.liyang.jpa.restful.core.exception.AccessDeny403Exception;
+import com.liyang.jpa.restful.core.exception.NotFound404Exception;
 import com.liyang.jpa.restful.core.interceptor.JpaRestfulGetInterceptor;
 import com.liyang.jpa.restful.core.utils.CommonUtils;
 import com.liyang.jpa.restful.core.utils.InterceptorComparator;
+import com.liyang.jpa.smart.query.db.SmartQuery;
 
 @Service
 public class GetService extends BaseService {
@@ -44,6 +33,7 @@ public class GetService extends BaseService {
 
 	}
 
+	@Transactional(readOnly = true)
 	public Object fetch(String resource, HashMap<String, String> params) {
 		checkResource(resource,params);
 		HashMap<Object, Object> context = new HashMap<>();
@@ -53,6 +43,7 @@ public class GetService extends BaseService {
 		return applyPostInterceptor(requestPath, fetchList , context);
 	}
 
+	@Transactional(readOnly = true)
 	public Object fetch(String resource, String resourceId, HashMap<String, String> params) {
 		checkResource(resource,params);
 		HashMap<Object, Object> context = new HashMap<>();
@@ -66,6 +57,7 @@ public class GetService extends BaseService {
 		return applyPostInterceptor(requestPath,fetchOne,context);
 	}
 
+	@Transactional(readOnly = true)
 	public Object fetch(String resource, String resourceId, String subResource, HashMap<String, String> params) {
 		checkSubResource(resource,subResource,params);
 		HashMap<Object, Object> context = new HashMap<>();
@@ -83,6 +75,7 @@ public class GetService extends BaseService {
 	}
 
 
+	@Transactional(readOnly = true)
 	public Object fetch(String resource, String resourceId, String subResource, String subResourceId,  HashMap<String, String> params) {
 		checkSubResource(resource,subResource,params);
 		HashMap<Object, Object> context = new HashMap<>();
@@ -100,6 +93,7 @@ public class GetService extends BaseService {
 		return applyPostInterceptor(requestPath, fetchOne,  context);
 	}
 
+	@Transactional(readOnly = true)
 	public Object fetch(String resource, String resourceId, String subResource, String subResourceId,
 			String subsubResource, HashMap<String, String> params) {
 		checkSubsubResource(resource, subResource, subsubResource, params);
@@ -116,12 +110,42 @@ public class GetService extends BaseService {
 		long fetchCount = SmartQuery.fetchCount(resource,
 				"uuid=" + resourceId + "&" + subResource + ".uuid=" + subResourceId);
 		if (fetchCount == 0) {
-			throw new GetFormatException(6212,"查询异常","数据不存在");
+			throw new NotFound404Exception(subResource+":"+subResourceId);
 		}		
 		Object fetchList = SmartQuery.fetchList(subsubResourceName, params);
 		return applyPostInterceptor(requestPath,fetchList, context);
 	}
 
+	
+	private boolean applyPreInterceptor(String requestPath ,HashMap<String, String> params, Map context) {
+		if (this.interceptors != null && this.interceptors.size() != 0) {
+
+			PathMatcher matcher = new AntPathMatcher();
+
+			Collection<JpaRestfulGetInterceptor> values = this.interceptors.values();
+			JpaRestfulGetInterceptor[] interceptors = values.toArray(new JpaRestfulGetInterceptor[values.size()]);
+			Arrays.sort(interceptors, new InterceptorComparator());
+			
+			// 顺序执行拦截器的preHandle方法，如果返回false,则调用triggerAfterCompletion方法
+			for (int i = 0; i < interceptors.length; i++) {
+				JpaRestfulGetInterceptor interceptor = interceptors[i];
+
+				String[] patternPath = interceptor.path();
+				boolean matched = false;
+				for (String pattern : patternPath) {
+					if (matcher.match(pattern, requestPath)) {
+						matched = true;
+					}
+				}
+				if (matched && !interceptor.preHandle(requestPath, params, context)) {
+					throw new AccessDeny403Exception("被拦截器"+interceptor.name()+"拦截");
+				}
+			}
+		}
+		return true;
+	}
+	
+	
 
 	private Object applyPostInterceptor(String requestPath, Object fetchList, Map context) {
 		if (this.interceptors != null && this.interceptors.size() != 0) {
@@ -148,35 +172,5 @@ public class GetService extends BaseService {
 		}
 		return fetchList;
 
-	}
-	
-
-	
-	private boolean applyPreInterceptor(String requestPath ,HashMap<String, String> params, Map context) {
-		if (this.interceptors != null && this.interceptors.size() != 0) {
-
-			PathMatcher matcher = new AntPathMatcher();
-
-			Collection<JpaRestfulGetInterceptor> values = this.interceptors.values();
-			JpaRestfulGetInterceptor[] interceptors = values.toArray(new JpaRestfulGetInterceptor[values.size()]);
-			Arrays.sort(interceptors, new InterceptorComparator());
-			
-			// 顺序执行拦截器的preHandle方法，如果返回false,则调用triggerAfterCompletion方法
-			for (int i = 0; i < interceptors.length; i++) {
-				JpaRestfulGetInterceptor interceptor = interceptors[i];
-
-				String[] patternPath = interceptor.path();
-				boolean matched = false;
-				for (String pattern : patternPath) {
-					if (matcher.match(pattern, requestPath)) {
-						matched = true;
-					}
-				}
-				if (matched && !interceptor.preHandle(requestPath, params, context)) {
-					throw new BusinessException(2000, "数据被拦截", "路径："+interceptor.path());
-				}
-			}
-		}
-		return true;
 	}
 }

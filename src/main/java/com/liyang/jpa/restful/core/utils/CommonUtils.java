@@ -12,7 +12,6 @@ import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 
-import org.hibernate.validator.constraints.ScriptAssert;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
@@ -21,17 +20,21 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.liyang.jpa.mysql.config.JpaSmartQuerySupport;
-import com.liyang.jpa.mysql.db.structure.ColumnStucture;
-import com.liyang.jpa.mysql.db.structure.EntityStructure;
+import com.liyang.jpa.restful.core.exception.NotFound404Exception;
+import com.liyang.jpa.smart.query.db.SmartQuery;
+import com.liyang.jpa.smart.query.db.structure.ColumnStucture;
+import com.liyang.jpa.smart.query.db.structure.EntityStructure;
 
 public class CommonUtils {
 
 	public static String subResourceName(String resource, String subResource) {
-		EntityStructure structure = JpaSmartQuerySupport.getStructure(resource);
+		EntityStructure structure = SmartQuery.getStructure(resource);
 		ColumnStucture columnStucture = structure.getObjectFields().get(subResource);
+		if(columnStucture==null) {
+			throw new NotFound404Exception(resource+":"+subResource);
+		}
 		Class<?> targetEntity = columnStucture.getTargetEntity();
-		EntityStructure subStructure = JpaSmartQuerySupport.getStructure(targetEntity);
+		EntityStructure subStructure = SmartQuery.getStructure(targetEntity);
 		return subStructure.getName();
 	}
 

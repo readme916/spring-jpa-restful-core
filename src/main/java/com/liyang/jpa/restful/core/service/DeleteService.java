@@ -1,6 +1,5 @@
 package com.liyang.jpa.restful.core.service;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -19,19 +18,16 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.PathMatcher;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.liyang.jpa.mysql.config.JpaSmartQuerySupport;
-import com.liyang.jpa.mysql.db.SmartQuery;
-import com.liyang.jpa.mysql.db.structure.ColumnJoinType;
-import com.liyang.jpa.mysql.db.structure.ColumnStucture;
-import com.liyang.jpa.mysql.db.structure.EntityStructure;
-import com.liyang.jpa.restful.core.exception.BusinessException;
-import com.liyang.jpa.restful.core.exception.PostFormatException;
+import com.liyang.jpa.restful.core.exception.AccessDeny403Exception;
+import com.liyang.jpa.restful.core.exception.NotFound404Exception;
 import com.liyang.jpa.restful.core.interceptor.JpaRestfulDeleteInterceptor;
-import com.liyang.jpa.restful.core.interceptor.JpaRestfulPostInterceptor;
 import com.liyang.jpa.restful.core.response.HTTPPostOkResponse;
 import com.liyang.jpa.restful.core.utils.CommonUtils;
 import com.liyang.jpa.restful.core.utils.InterceptorComparator;
+import com.liyang.jpa.smart.query.db.SmartQuery;
+import com.liyang.jpa.smart.query.db.structure.ColumnJoinType;
+import com.liyang.jpa.smart.query.db.structure.ColumnStucture;
+import com.liyang.jpa.smart.query.db.structure.EntityStructure;
 
 @Service
 public class DeleteService extends BaseService {
@@ -48,11 +44,11 @@ public class DeleteService extends BaseService {
 	public Object delete(String resource, String resourceId) {
 		checkResource(resource, null);
 		HashMap<Object, Object> context = new HashMap<Object, Object>();
-		EntityStructure structure = JpaSmartQuerySupport.getStructure(resource);
+		EntityStructure structure = SmartQuery.getStructure(resource);
 		Object oldInstance;
 		Optional oldInstanceOptional = structure.getJpaRepository().findById(resourceId);
 		if (!oldInstanceOptional.isPresent()) {
-			throw new PostFormatException(3100, "数据不存在", "");
+			throw new NotFound404Exception(resource+":"+resourceId);
 		} else {
 			oldInstance = oldInstanceOptional.get();
 		}
@@ -70,16 +66,16 @@ public class DeleteService extends BaseService {
 	public Object delete(String resource, String resourceId, String subResource, String subResourceId) {
 		checkResource(resource, null);
 		HashMap<Object, Object> context = new HashMap<Object, Object>();
-		EntityStructure structure = JpaSmartQuerySupport.getStructure(resource);
+		EntityStructure structure = SmartQuery.getStructure(resource);
 		long fetchCount = SmartQuery.fetchCount(resource,
 				"uuid=" + resourceId + "&" + subResource + ".uuid=" + subResourceId);
 		if (fetchCount == 0) {
-			throw new PostFormatException(3330, "数据不存在", "");
+			throw new NotFound404Exception(subResource+":"+subResourceId);
 		} else {
 			Object owner;
 			Optional ownerOptional = structure.getJpaRepository().findById(resourceId);
 			owner = ownerOptional.get();
-			EntityStructure subResourceStructure = JpaSmartQuerySupport
+			EntityStructure subResourceStructure = SmartQuery
 					.getStructure(CommonUtils.subResourceName(resource, subResource));
 			Optional oldInstanceOptional = subResourceStructure.getJpaRepository().findById(subResourceId);
 			Object subResourceObject = oldInstanceOptional.get();
@@ -148,7 +144,7 @@ public class DeleteService extends BaseService {
 		ColumnStucture columnStucture = structure.getObjectFields().get(key);
 		ColumnJoinType joinType = columnStucture.getJoinType();
 		Class<?> targetEntity = columnStucture.getTargetEntity();
-		EntityStructure targetStructure = JpaSmartQuerySupport.getStructure(targetEntity);
+		EntityStructure targetStructure = SmartQuery.getStructure(targetEntity);
 		if (joinType.equals(ColumnJoinType.ONE_TO_ONE)) {
 			if (columnStucture.getMappedBy() != null) {
 				BeanWrapperImpl wrapper = new BeanWrapperImpl(oldInstance);
@@ -212,7 +208,7 @@ public class DeleteService extends BaseService {
 					}
 				}
 				if (matched && !interceptor.preHandle(requestPath, oldInstance, context)) {
-					throw new BusinessException(2000, "数据被拦截", "路径：" + interceptor.path());
+					throw new AccessDeny403Exception("被拦截器"+interceptor.name()+"拦截");
 				}
 			}
 		}

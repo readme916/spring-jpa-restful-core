@@ -43,26 +43,24 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.thymeleaf.spring5.templateresolver.SpringResourceTemplateResolver;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.liyang.jpa.mysql.config.JpaSmartQuerySupport;
-import com.liyang.jpa.mysql.db.structure.ColumnJoinType;
-import com.liyang.jpa.mysql.db.structure.ColumnStucture;
-import com.liyang.jpa.mysql.db.structure.EntityStructure;
 import com.liyang.jpa.restful.core.annotation.JpaRestfulResource;
 import com.liyang.jpa.restful.core.interceptor.JpaRestfulDeleteInterceptor;
 import com.liyang.jpa.restful.core.interceptor.JpaRestfulGetInterceptor;
 import com.liyang.jpa.restful.core.interceptor.JpaRestfulPostInterceptor;
 import com.liyang.jpa.restful.core.utils.CommonUtils;
+import com.liyang.jpa.smart.query.db.SmartQuery;
+import com.liyang.jpa.smart.query.db.structure.ColumnJoinType;
+import com.liyang.jpa.smart.query.db.structure.ColumnStucture;
+import com.liyang.jpa.smart.query.db.structure.EntityStructure;
 
 @Controller
 @RequestMapping("${spring.jpa.restful.structure-path}")
 @ConditionalOnProperty(name = { "spring.jpa.restful.structure-path", "spring.jpa.restful.path" })
-public class StructureShowController {
+public class StructureShowController  implements DefaultExceptionHandler{
 	protected final static Logger logger = LoggerFactory.getLogger(StructureShowController.class);
 
 	@Value(value = "${spring.jpa.restful.path}")
@@ -88,7 +86,7 @@ public class StructureShowController {
 	@RequestMapping(path = "", method = RequestMethod.GET)
 	public String hello(Model model) {
 		ArrayList<SimpleResource> arrayList = new ArrayList<SimpleResource>();
-		HashMap<String, EntityStructure> nametostructure = JpaSmartQuerySupport.getNametostructure();
+		HashMap<String, EntityStructure> nametostructure = SmartQuery.getNametostructure();
 		Collection<EntityStructure> values = nametostructure.values();
 		for (EntityStructure entityStructure : values) {
 			Class<?> cls = entityStructure.getEntityClass();
@@ -106,7 +104,7 @@ public class StructureShowController {
 
 	@RequestMapping(path = "${spring.jpa.restful.path}/{resource}", method = RequestMethod.GET)
 	public String resource(@PathVariable String resource, Model model) throws JsonProcessingException {
-		Class<?> entityClass = JpaSmartQuerySupport.getStructure(resource).getEntityClass();
+		Class<?> entityClass = SmartQuery.getStructure(resource).getEntityClass();
 		FullResource fullResource = new FullResource();
 		fullResource.getRelativeUri().add("/" + path + "/" + resource + "/{id}");
 		fullResource.setResourceUri("/" + path + "/" + resource);
@@ -134,11 +132,11 @@ public class StructureShowController {
 	@RequestMapping(path = "${spring.jpa.restful.path}/{resource}/{id}", method = RequestMethod.GET)
 	public String resource(@PathVariable String resource, @PathVariable String id, Model model)
 			throws JsonProcessingException {
-		Class<?> entityClass = JpaSmartQuerySupport.getStructure(resource).getEntityClass();
+		Class<?> entityClass = SmartQuery.getStructure(resource).getEntityClass();
 
 		Field[] declaredFields = entityClass.getDeclaredFields();
 		FullResource fullResource = new FullResource();
-		Map<String, ColumnStucture> objectFields = JpaSmartQuerySupport.getStructure(entityClass).getObjectFields();
+		Map<String, ColumnStucture> objectFields = SmartQuery.getStructure(entityClass).getObjectFields();
 		Set<Entry<String, ColumnStucture>> entrySet = objectFields.entrySet();
 		for (Entry<String, ColumnStucture> entry : entrySet) {
 			fullResource.getRelativeUri().add("/" + path + "/" + resource + "/{id}/" + entry.getKey());
@@ -173,7 +171,7 @@ public class StructureShowController {
 	public Object resource(@PathVariable String resource, @PathVariable String id, @PathVariable String subResource,
 			Model model) throws JsonProcessingException {
 
-		ColumnStucture columnStucture = JpaSmartQuerySupport.getStructure(resource).getObjectFields().get(subResource);
+		ColumnStucture columnStucture = SmartQuery.getStructure(resource).getObjectFields().get(subResource);
 		boolean parentStructure = false;
 		if (columnStucture.getJoinType().equals(ColumnJoinType.ONE_TO_MANY)
 				|| columnStucture.getJoinType().equals(ColumnJoinType.ONE_TO_ONE)) {
@@ -223,7 +221,7 @@ public class StructureShowController {
 	@RequestMapping(path = "${spring.jpa.restful.path}/{resource}/{id}/{subResource}/{subId}", method = RequestMethod.GET)
 	public Object resource(@PathVariable String resource, @PathVariable String id, @PathVariable String subResource,
 			@PathVariable String subId, Model model) throws JsonProcessingException {
-		ColumnStucture columnStucture = JpaSmartQuerySupport.getStructure(resource).getObjectFields().get(subResource);
+		ColumnStucture columnStucture = SmartQuery.getStructure(resource).getObjectFields().get(subResource);
 		boolean parentStructure = false;
 		if (columnStucture.getJoinType().equals(ColumnJoinType.ONE_TO_MANY)
 				|| columnStucture.getJoinType().equals(ColumnJoinType.ONE_TO_ONE)) {
@@ -233,7 +231,7 @@ public class StructureShowController {
 		Class<?> entityClass = columnStucture.getTargetEntity();
 		Field[] declaredFields = entityClass.getDeclaredFields();
 		FullResource fullResource = new FullResource();
-		EntityStructure structure = JpaSmartQuerySupport.getStructure(entityClass);
+		EntityStructure structure = SmartQuery.getStructure(entityClass);
 		Map<String, ColumnStucture> objectFields = structure.getObjectFields();
 		Set<Entry<String, ColumnStucture>> entrySet = objectFields.entrySet();
 		for (Entry<String, ColumnStucture> entry : entrySet) {
@@ -275,10 +273,10 @@ public class StructureShowController {
 	public Object resource(@PathVariable String resource, @PathVariable String id, @PathVariable String subResource,
 			@PathVariable String subId, @PathVariable String subsubResource, Model model)
 			throws JsonProcessingException {
-		Class<?> entityClass = JpaSmartQuerySupport.getStructure(resource).getObjectFields().get(subResource)
+		Class<?> entityClass = SmartQuery.getStructure(resource).getObjectFields().get(subResource)
 				.getTargetEntity();
 
-		ColumnStucture columnStucture = JpaSmartQuerySupport.getStructure(entityClass).getObjectFields()
+		ColumnStucture columnStucture = SmartQuery.getStructure(entityClass).getObjectFields()
 				.get(subsubResource);
 		boolean parentStructure = false;
 		if (columnStucture.getJoinType().equals(ColumnJoinType.ONE_TO_MANY)
@@ -290,7 +288,7 @@ public class StructureShowController {
 		Field[] declaredFields = entityClass.getDeclaredFields();
 		FullResource fullResource = new FullResource();
 
-		EntityStructure structure = JpaSmartQuerySupport.getStructure(entityClass);
+		EntityStructure structure = SmartQuery.getStructure(entityClass);
 
 		fullResource.setResourceUri("/" + path + "/" + resource + "/{id}/" + subResource + "/{id}/" + subsubResource);
 

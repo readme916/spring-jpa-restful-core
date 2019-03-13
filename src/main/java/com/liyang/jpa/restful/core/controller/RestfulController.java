@@ -20,7 +20,7 @@ import com.liyang.jpa.restful.core.service.PostService;
 @RestController
 @RequestMapping("${spring.jpa.restful.path}")
 @ConditionalOnProperty(name = "spring.jpa.restful.path")
-public class RestfulController {
+public class RestfulController implements DefaultExceptionHandler{
 	protected final static Logger logger = LoggerFactory.getLogger(RestfulController.class);
 	@Autowired
 	PostService postService;
