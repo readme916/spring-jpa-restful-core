@@ -12,5 +12,8 @@ public class Validator422Exception extends JpaRestfulException{
 		// TODO Auto-generated constructor stub
 	}
 	
-
+	public Validator422Exception() {
+		super(422, "Unprocessable Entity" , "格式验证错误", "");
+		// TODO Auto-generated constructor stub
+	}
 }

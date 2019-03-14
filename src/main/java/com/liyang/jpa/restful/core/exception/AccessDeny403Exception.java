@@ -11,5 +11,8 @@ public class AccessDeny403Exception extends JpaRestfulException{
 	public AccessDeny403Exception(Object detail) {
 		super(403, "Forbidden", "无访问权限", detail);
 	}
+	public AccessDeny403Exception() {
+		super(403, "Forbidden", "无访问权限", "");
+	}
 
 }

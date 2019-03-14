@@ -12,6 +12,9 @@ public class Timeout408Exception extends JpaRestfulException{
 		super(408, "Request Timeout" , "连接超时", because);
 		// TODO Auto-generated constructor stub
 	}
-	
+	public Timeout408Exception() {
+		super(408, "Request Timeout" , "连接超时", "");
+		// TODO Auto-generated constructor stub
+	}
 
 }

@@ -11,4 +11,9 @@ public class ServerError500Exception extends JpaRestfulException{
 		super(500, "Internal Server Error","内部服务错误", because);
 		// TODO Auto-generated constructor stub
 	}
+	
+	public ServerError500Exception() {
+		super(500, "Internal Server Error","内部服务错误", "");
+		// TODO Auto-generated constructor stub
+	}
 }

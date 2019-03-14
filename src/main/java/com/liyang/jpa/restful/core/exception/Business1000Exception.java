@@ -22,6 +22,8 @@ public class Business1000Exception extends JpaRestfulException{
 		}
 		// TODO Auto-generated constructor stub
 	}
-	
+	public Business1000Exception() {
+		super(1000, "Business Error" , "" , "");
+	}
 
 }

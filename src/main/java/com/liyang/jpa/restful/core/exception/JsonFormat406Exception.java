@@ -12,6 +12,8 @@ public class JsonFormat406Exception extends JpaRestfulException{
 		super(406, "Not Acceptable" , "JSON格式错误", because);
 		// TODO Auto-generated constructor stub
 	}
-	
+	public JsonFormat406Exception() {
+		super(406, "Not Acceptable" , "JSON格式错误", "");
+	}
 
 }

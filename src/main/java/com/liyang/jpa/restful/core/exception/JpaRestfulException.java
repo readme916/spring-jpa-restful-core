@@ -15,6 +15,9 @@ public class JpaRestfulException extends RuntimeException{
 	private String message;
 	private Object detail;
 
+	public JpaRestfulException() {
+	}
+	
 	public JpaRestfulException(int status, String error,String message,Object detail) {
 		super(message.toString());
 		this.status = status;

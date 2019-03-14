@@ -11,6 +11,8 @@ public class NotFound404Exception extends JpaRestfulException{
 	public NotFound404Exception(Object detail) {
 		super(404, "Not Found", "资源不存在", detail);
 	}
-	
+	public NotFound404Exception() {
+		super(404, "Not Found", "资源不存在", "");
+	}
 
 }
