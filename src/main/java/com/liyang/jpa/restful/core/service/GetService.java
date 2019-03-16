@@ -25,12 +25,13 @@ import com.liyang.jpa.smart.query.db.SmartQuery;
 public class GetService extends BaseService {
 
 	private Map<String, JpaRestfulGetInterceptor> interceptors;
+	private ApplicationContext applicationContext;
 	protected final static Logger logger = LoggerFactory.getLogger(GetService.class);
 
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		this.interceptors = applicationContext.getBeansOfType(JpaRestfulGetInterceptor.class);
-
+		this.applicationContext = applicationContext;
 	}
 
 	@Transactional(readOnly = true)

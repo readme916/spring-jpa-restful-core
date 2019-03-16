@@ -33,11 +33,12 @@ import com.liyang.jpa.smart.query.db.structure.EntityStructure;
 public class DeleteService extends BaseService {
 	private Map<String, JpaRestfulDeleteInterceptor> interceptors;
 	protected final static Logger logger = LoggerFactory.getLogger(DeleteService.class);
-
+	private ApplicationContext applicationContext;
+	
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		this.interceptors = applicationContext.getBeansOfType(JpaRestfulDeleteInterceptor.class);
-
+		this.applicationContext = applicationContext;
 	}
 
 	@Transactional(readOnly = false)

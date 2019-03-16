@@ -73,6 +73,8 @@
 				</div>
 
 
+
+
 				<div class="panel panel-primary">
 					<div class="panel-heading">
 						<h3 class="panel-title">生效的拦截器</h3>
@@ -83,7 +85,7 @@
 								<tr>
 									<th>请求方式</th>
 									<th>拦截器</th>
-									
+
 								</tr>
 							</thead>
 
@@ -92,37 +94,32 @@
 									<td>GET</td>
 									<td>
 										<ul>
-											<li th:each="i : ${resource.interceptors['GET']}">
-											<span th:text="${i.order}"></span> - 
-											<span
-												th:text="${i.name}"></span><span
+											<li th:each="i : ${resource.interceptors['GET']}"><span
+												th:text="${i.order}"></span> - <span th:text="${i.name}"></span><span
 												th:text="'('+${i.description}+')'"></span></li>
 
 										</ul>
 									</td>
-									
+
 								</tr>
 								<tr th:if="${not #lists.isEmpty(resource.interceptors['POST'])}">
 									<td>POST</td>
 									<td>
 										<ul>
-											<li th:each="i : ${resource.interceptors['POST']}">
-											<span th:text="${i.order}"></span> - 
-											<span
-												th:text="${i.name}"></span><span
+											<li th:each="i : ${resource.interceptors['POST']}"><span
+												th:text="${i.order}"></span> - <span th:text="${i.name}"></span><span
 												th:text="'('+${i.description}+')'"></span></li>
 
 										</ul>
 									</td>
 								</tr>
-								<tr th:if="${not #lists.isEmpty(resource.interceptors['DELETE'])}">
+								<tr
+									th:if="${not #lists.isEmpty(resource.interceptors['DELETE'])}">
 									<td>DELETE</td>
 									<td>
 										<ul>
-											<li th:each="i : ${resource.interceptors['DELETE']}">
-											<span th:text="${i.order}"></span> - 
-											<span
-												th:text="${i.name}"></span><span
+											<li th:each="i : ${resource.interceptors['DELETE']}"><span
+												th:text="${i.order}"></span> - <span th:text="${i.name}"></span><span
 												th:text="'('+${i.description}+')'"></span></li>
 
 										</ul>
@@ -132,6 +129,19 @@
 
 
 						</table>
+					</div>
+
+				</div>
+
+
+				<div class="panel panel-primary">
+					<div class="panel-heading">
+						<h3 class="panel-title">自定义的事件（post格式中event字段）</h3>
+					</div>
+					<div class="panel-body">
+						<ul th:if="${not #sets.isEmpty(resource.events)}"  th:each="i : ${resource.events}">
+						<li th:text="${i}"></li>
+						</ul>
 					</div>
 
 				</div>

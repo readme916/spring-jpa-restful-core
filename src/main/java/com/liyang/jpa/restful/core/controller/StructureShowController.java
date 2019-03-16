@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -60,7 +61,7 @@ import com.liyang.jpa.smart.query.db.structure.EntityStructure;
 @Controller
 @RequestMapping("${spring.jpa.restful.structure-path}")
 @ConditionalOnProperty(name = { "spring.jpa.restful.structure-path", "spring.jpa.restful.path" })
-public class StructureShowController  implements DefaultExceptionHandler{
+public class StructureShowController  extends DefaultExceptionHandler{
 	protected final static Logger logger = LoggerFactory.getLogger(StructureShowController.class);
 
 	@Value(value = "${spring.jpa.restful.path}")
@@ -97,7 +98,6 @@ public class StructureShowController  implements DefaultExceptionHandler{
 				arrayList.add(simpleResource);
 			}
 		}
-		String basePatha1 = ClassUtils.getDefaultClassLoader().getResource("").getPath();
 		model.addAttribute("resources", arrayList);
 		return "restful_home";
 	}
@@ -118,6 +118,7 @@ public class StructureShowController  implements DefaultExceptionHandler{
 		postDescription.setDescription("创建" + resource + "资源，格式见下");
 		fullResource.setMethods(Arrays.asList(new MethodDescription[] { getDescription, postDescription }));
 		fullResource.setInterceptors(_interceptorParse(fullResource.getResourceUri(), true, false));
+		fullResource.setEvents(SmartQuery.getStructure(resource).getEvents());
 		Field[] declaredFields = entityClass.getDeclaredFields();
 		fillFields(declaredFields, fullResource, "/" + path + "/" + resource, true);
 
@@ -158,6 +159,8 @@ public class StructureShowController  implements DefaultExceptionHandler{
 				Arrays.asList(new MethodDescription[] { getDescription, postDescription, deleteDescription }));
 		fullResource.setResourceUri("/" + path + "/" + resource + "/{id}");
 		fullResource.setInterceptors(_interceptorParse(fullResource.getResourceUri(), true, true));
+		fullResource.setEvents(SmartQuery.getStructure(resource).getEvents());
+		
 		fillFields(declaredFields, fullResource, "/" + path + "/" + resource, true);
 		HashMap<String, Object> postStructure = fullResource.getPostStructure();
 		ObjectMapper mapper = new ObjectMapper();
@@ -179,6 +182,9 @@ public class StructureShowController  implements DefaultExceptionHandler{
 		}
 
 		Class<?> entityClass = columnStucture.getTargetEntity();
+		
+		
+		
 		Field[] declaredFields = entityClass.getDeclaredFields();
 
 		FullResource fullResource = new FullResource();
@@ -189,7 +195,7 @@ public class StructureShowController  implements DefaultExceptionHandler{
 		fullResource.setResourceUri("/" + path + "/" + resource + "/{id}/" + subResource);
 
 		fullResource.setTitle(subResource + " - 桥接资源（列表）");
-
+		fullResource.setEvents(SmartQuery.getStructure(entityClass).getEvents());
 		ArrayList<MethodDescription> methods = new ArrayList<MethodDescription>();
 		if (parentStructure) {
 			MethodDescription getDescription = new MethodDescription();
@@ -242,7 +248,7 @@ public class StructureShowController  implements DefaultExceptionHandler{
 		fullResource.setResourceUri("/" + path + "/" + resource + "/{id}/" + subResource + "/{id}");
 
 		fullResource.setTitle(subResource + " - 桥接资源（对象）");
-
+		fullResource.setEvents(SmartQuery.getStructure(entityClass).getEvents());
 		ArrayList<MethodDescription> methods = new ArrayList<MethodDescription>();
 		MethodDescription getDescription = new MethodDescription();
 		getDescription.setMethod("GET");
@@ -289,7 +295,7 @@ public class StructureShowController  implements DefaultExceptionHandler{
 		FullResource fullResource = new FullResource();
 
 		EntityStructure structure = SmartQuery.getStructure(entityClass);
-
+		fullResource.setEvents(SmartQuery.getStructure(entityClass).getEvents());
 		fullResource.setResourceUri("/" + path + "/" + resource + "/{id}/" + subResource + "/{id}/" + subsubResource);
 
 		fullResource.setTitle(subsubResource + " - 桥接资源（列表）");
@@ -509,6 +515,16 @@ public class StructureShowController  implements DefaultExceptionHandler{
 		private String resourceUri;
 		private HashMap<String, List<Interceptor>> interceptors = new HashMap();
 		private HashMap<String, Object> fields = new HashMap();
+		private HashSet<String> events = new HashSet();
+
+		
+		public HashSet<String> getEvents() {
+			return events;
+		}
+
+		public void setEvents(HashSet<String> events) {
+			this.events = events;
+		}
 
 		public String getPostStructureString() {
 			return postStructureString;

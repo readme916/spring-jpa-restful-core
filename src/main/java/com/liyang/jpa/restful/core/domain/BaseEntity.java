@@ -11,9 +11,9 @@ import org.hibernate.annotations.GenericGenerator;
 
 public interface BaseEntity extends Serializable {
 
-	public String getOperate();
+	public String getEvent();
 
-	public void setOperate(String operate); 
+	public void setEvent(String event); 
 
 	public String getUuid();
 

@@ -13,12 +13,16 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.TransactionSystemException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.servlet.HandlerMapping;
@@ -26,36 +30,87 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.liyang.jpa.restful.core.exception.AccessDeny403Exception;
+import com.liyang.jpa.restful.core.exception.Business503Exception;
 import com.liyang.jpa.restful.core.exception.JpaRestfulException;
+import com.liyang.jpa.restful.core.exception.JsonFormat406Exception;
+import com.liyang.jpa.restful.core.exception.NotFound404Exception;
+import com.liyang.jpa.restful.core.exception.ServerError500Exception;
+import com.liyang.jpa.restful.core.exception.Timeout408Exception;
 import com.liyang.jpa.restful.core.exception.Validator422Exception;
 import com.liyang.jpa.restful.core.utils.CommonUtils;
 import com.liyang.jpa.restful.core.utils.CommonUtils.ValidateError;
 
-public interface DefaultExceptionHandler {
-	@ExceptionHandler(JpaRestfulException.class)
-	default void customerExceptionHandler(JpaRestfulException ex, HttpServletResponse httpResponse) {
-		try {
-			httpResponse.setContentType("application/json; charset=utf-8");
-			Response response = new Response(ex);
-			String objectToString = CommonUtils.objectToString(response);
-			httpResponse.getWriter().write(objectToString);
-			httpResponse.setStatus(ex.getStatus());
-			httpResponse.flushBuffer();
+public abstract class DefaultExceptionHandler {
+	@ExceptionHandler(AccessDeny403Exception.class)
+	@ResponseBody
+	@ResponseStatus(HttpStatus.FORBIDDEN)
+	public Object customerExceptionHandler1(AccessDeny403Exception ex) {
+		Response response = new Response(ex);
+		return response;
 
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+	}
+
+	@ExceptionHandler(Business503Exception.class)
+	@ResponseBody
+	@ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
+	public Object customerExceptionHandler2(Business503Exception ex) {
+		Response response = new Response(ex);
+		return response;
+
+	}
+
+	@ExceptionHandler(JsonFormat406Exception.class)
+	@ResponseBody
+	@ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
+	public Object customerExceptionHandler3(JsonFormat406Exception ex) {
+		Response response = new Response(ex);
+		return response;
+
+	}
+
+	@ExceptionHandler(NotFound404Exception.class)
+	@ResponseBody
+	@ResponseStatus(HttpStatus.NOT_FOUND)
+	public Object customerExceptionHandler4(NotFound404Exception ex) {
+		Response response = new Response(ex);
+		return response;
+
+	}
+
+	@ExceptionHandler(ServerError500Exception.class)
+	@ResponseBody
+	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+	public Object customerExceptionHandler5(ServerError500Exception ex) {
+		Response response = new Response(ex);
+		return response;
+
+	}
+
+	@ExceptionHandler(Timeout408Exception.class)
+	@ResponseBody
+	@ResponseStatus(HttpStatus.REQUEST_TIMEOUT)
+	public Object customerExceptionHandler6(Timeout408Exception ex) {
+		Response response = new Response(ex);
+		return response;
+
+	}
+
+	@ExceptionHandler(Validator422Exception.class)
+	@ResponseBody
+	@ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
+	public Object customerExceptionHandler7(Validator422Exception ex) {
+		Response response = new Response(ex);
+		return response;
+
 	}
 
 	@ExceptionHandler(TransactionSystemException.class)
-	default void validatorHandler(TransactionSystemException ex, HttpServletResponse httpResponse) {
-
+	@ResponseBody
+	@ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
+	public Object validatorHandler(TransactionSystemException ex) {
 		Throwable rootCause = ex.getRootCause();
 		if (rootCause instanceof ConstraintViolationException) {
-
 			ConstraintViolationException rootEx = (ConstraintViolationException) rootCause;
-
 			Set<ConstraintViolation<?>> constraintViolations = rootEx.getConstraintViolations();
 			HashMap<String, String> errors = new HashMap<String, String>();
 			if (!constraintViolations.isEmpty()) {
@@ -66,40 +121,33 @@ public interface DefaultExceptionHandler {
 					errors.put(constraint.getPropertyPath().toString(), constraint.getMessage());
 				}
 			}
-			try {
-				httpResponse.setContentType("application/json; charset=utf-8");
-				Validator422Exception validator422Exception = new Validator422Exception(errors);
-				Response response = new Response(validator422Exception);
-				String objectToString = CommonUtils.objectToString(response);
-				httpResponse.getWriter().write(objectToString);
-				httpResponse.setStatus(validator422Exception.getStatus());
-				httpResponse.flushBuffer();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			Validator422Exception validator422Exception = new Validator422Exception(errors);
+			Response response = new Response(validator422Exception);
+			return response;
+		}else {
+			ex.printStackTrace();
+			return null;
 		}
 	}
-
-	@ExceptionHandler(Exception.class)
-	default void ExceptionHandler(Exception ex, HttpServletResponse httpResponse) {
-		ex.printStackTrace();
-		try {
-			httpResponse.setContentType("application/json; charset=utf-8");
-			Response response = new Response(ex);
-			String objectToString = CommonUtils.objectToString(response);
-			httpResponse.getWriter().write(objectToString);
-			httpResponse.setStatus(500);
-			httpResponse.flushBuffer();
-
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-
 	
-	public static class Response{
+	@ExceptionHandler(DataIntegrityViolationException.class)
+	@ResponseBody
+	@ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
+	public Object ExceptionHandler(DataIntegrityViolationException ex) {
+		Business503Exception business503Exception = new Business503Exception(503,"唯一索引不允许重复","");
+		Response response = new Response(business503Exception);
+		return response;
+	}
+	@ExceptionHandler(Exception.class)
+	@ResponseBody
+	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+	public Object ExceptionHandler(Exception ex) {
+		ex.printStackTrace();
+		Response response = new Response(ex);
+		return response;
+	}
+
+	public static class Response {
 
 		private int status;
 		private String error;
@@ -108,7 +156,7 @@ public interface DefaultExceptionHandler {
 		private String path;
 		private String message;
 		private Object detail;
-		
+
 		public Response(JpaRestfulException ex) {
 			this.status = ex.getStatus();
 			this.error = ex.getError();
@@ -117,17 +165,20 @@ public interface DefaultExceptionHandler {
 			this.message = ex.getMessage();
 			this.detail = ex.getDetail();
 		}
+
 		public Response(Exception ex) {
 			this.status = 500;
 			this.error = "内部错误";
 			this.timestamp = new Date();
-			ServletRequestAttributes requestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+			ServletRequestAttributes requestAttributes = (ServletRequestAttributes) RequestContextHolder
+					.getRequestAttributes();
 			HttpServletRequest request = requestAttributes.getRequest();
 			String pathInfo = request.getRequestURI();
 			this.path = pathInfo;
 			this.message = ex.getMessage();
 			this.detail = "";
 		}
+
 		public int getStatus() {
 			return status;
 		}
@@ -175,6 +226,6 @@ public interface DefaultExceptionHandler {
 		public void setDetail(Object detail) {
 			this.detail = detail;
 		}
-		
+
 	}
 }
