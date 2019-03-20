@@ -64,7 +64,7 @@ public class CheckService implements ApplicationContextAware,InitializingBean  {
 			
 			Method[] declaredMethods = listener.getClass().getDeclaredMethods();
 			for (Method method : declaredMethods) {
-				if(method.getName().startsWith("on")) {
+				if(method.getName().startsWith("on") && !method.getName().equals("onApplicationEvent")) {
 					String substring = method.getName().substring(2);
 					substring = substring.substring(0, 1).toLowerCase() + substring.substring(1);
 					events.add(substring);
