@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.PathMatcher;
 
+import com.liyang.jpa.restful.core.event.RestfulEvent;
 import com.liyang.jpa.restful.core.exception.AccessDeny403Exception;
 import com.liyang.jpa.restful.core.exception.NotFound404Exception;
 import com.liyang.jpa.restful.core.interceptor.JpaRestfulDeleteInterceptor;
@@ -55,7 +56,7 @@ public class DeleteService extends BaseService {
 		}
 		String requestPath = "/" + resource + "/" + resourceId;
 		applyPreInterceptor(requestPath, oldInstance, context);
-
+		publish("delete",oldInstance,structure);
 		recursiveDelete(structure, oldInstance);
 
 		HTTPPostOkResponse httpPostOkResponse = new HTTPPostOkResponse();
@@ -76,15 +77,19 @@ public class DeleteService extends BaseService {
 			Object owner;
 			Optional ownerOptional = structure.getJpaRepository().findById(resourceId);
 			owner = ownerOptional.get();
+			
+			
 			EntityStructure subResourceStructure = SmartQuery
 					.getStructure(CommonUtils.subResourceName(resource, subResource));
 			Optional oldInstanceOptional = subResourceStructure.getJpaRepository().findById(subResourceId);
 			Object subResourceObject = oldInstanceOptional.get();
+			
 			String requestPath = "/" + resource + "/" + resourceId + "/" + subResource + "/" + subResourceId;
 			applyPreInterceptor(requestPath, subResourceObject, context);
-
+			
+			publish("unlink",subResourceObject,subResourceStructure);
+			
 			subDelete(structure, owner, subResource, subResourceStructure, subResourceObject);
-
 			HTTPPostOkResponse httpPostOkResponse = new HTTPPostOkResponse();
 			httpPostOkResponse.setUuid(subResourceId);
 			return applyPostInterceptor(requestPath, httpPostOkResponse, context);
@@ -241,5 +246,11 @@ public class DeleteService extends BaseService {
 		}
 		return httpPostOkResponse;
 
+	}
+	
+	private void publish(String event , Object beforeDelete,  EntityStructure entityStructure) {
+		
+		 applicationContext.publishEvent(new RestfulEvent(event,beforeDelete,entityStructure));
+	
 	}
 }

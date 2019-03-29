@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 
 import com.liyang.jpa.restful.core.annotation.JpaRestfulResource;
 import com.liyang.jpa.restful.core.domain.BaseEntity;
-import com.liyang.jpa.restful.core.event.RestfulEventListener;
+import com.liyang.jpa.restful.core.listener.RestfulEventListener;
 import com.liyang.jpa.smart.query.db.SmartQuery;
 import com.liyang.jpa.smart.query.db.structure.EntityStructure;
 import com.liyang.jpa.smart.query.exception.StructureException;

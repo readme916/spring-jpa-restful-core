@@ -27,7 +27,7 @@ public class GetService extends BaseService {
 	private Map<String, JpaRestfulGetInterceptor> interceptors;
 	private ApplicationContext applicationContext;
 	protected final static Logger logger = LoggerFactory.getLogger(GetService.class);
-
+	
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		this.interceptors = applicationContext.getBeansOfType(JpaRestfulGetInterceptor.class);
@@ -127,7 +127,6 @@ public class GetService extends BaseService {
 			JpaRestfulGetInterceptor[] interceptors = values.toArray(new JpaRestfulGetInterceptor[values.size()]);
 			Arrays.sort(interceptors, new InterceptorComparator());
 			
-			// 顺序执行拦截器的preHandle方法，如果返回false,则调用triggerAfterCompletion方法
 			for (int i = 0; i < interceptors.length; i++) {
 				JpaRestfulGetInterceptor interceptor = interceptors[i];
 

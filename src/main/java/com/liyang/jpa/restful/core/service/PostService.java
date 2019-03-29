@@ -58,12 +58,11 @@ public class PostService extends BaseService {
 		applyPreInterceptor(requestPath, bodyToMap, null, context);
 
 		EntityStructure structure = SmartQuery.getStructure(resource);
-		Object readObject = withoutIdBodyValidation(structure, bodyToMap);
+		Object readObject = withoutIdBodyValidationMap(structure, bodyToMap);
+		publish("create",bodyToMap,readObject,structure);
 		Object save = structure.getJpaRepository().saveAndFlush(readObject);
-
 		BeanWrapperImpl saveImpl = new BeanWrapperImpl(save);
 		Object savedUUID = saveImpl.getPropertyValue("uuid");
-		publish("create",bodyToMap,save,structure);
 		HTTPPostOkResponse httpPostOkResponse = new HTTPPostOkResponse();
 		httpPostOkResponse.setUuid(savedUUID.toString());
 		return applyPostInterceptor(requestPath, httpPostOkResponse, context);
@@ -132,10 +131,9 @@ public class PostService extends BaseService {
 		applyPreInterceptor(requestPath, bodyToMap, oldInstance, context);
 
 		Object newInstance = bodyValidation(structure, bodyToMap, oldInstance);
-
+		
 		Object saveAndFlush = structure.getJpaRepository().saveAndFlush(newInstance);
 		
-		publish("update",bodyToMap,saveAndFlush,structure);
 		HTTPPostOkResponse httpPostOkResponse = new HTTPPostOkResponse();
 		httpPostOkResponse.setUuid(resourceId);
 		return applyPostInterceptor(requestPath, httpPostOkResponse, context);
@@ -160,7 +158,6 @@ public class PostService extends BaseService {
 
 			Object newInstance = bodyValidation(subResourceStructure, bodyToMap, oldInstance);
 			Object saveAndFlush = subResourceStructure.getJpaRepository().saveAndFlush(newInstance);
-			publish("update",bodyToMap,saveAndFlush,subResourceStructure);
 			HTTPPostOkResponse httpPostOkResponse = new HTTPPostOkResponse();
 			httpPostOkResponse.setUuid(subResourceId);
 			return applyPostInterceptor(requestPath, httpPostOkResponse, context);
@@ -194,22 +191,18 @@ public class PostService extends BaseService {
 			if (existSubResourceObject != null) {
 				throw new ServerError500Exception(subResource+"子资源已经存在");
 			}
-			Object bodyObject = withoutIdBodyValidation(targetEntityStructure, readObject);
+			Object bodyObject = withoutIdBodyValidationObject(targetEntityStructure, readObject);
+			publish("create",bodyToMap,bodyObject,targetEntityStructure);
 			Object save;
 			if (columnStucture.getMappedBy() != null) {
 				BeanWrapperImpl bodyObjectWrapper = new BeanWrapperImpl(bodyObject);
 				bodyObjectWrapper.setPropertyValue(columnStucture.getMappedBy(), owner);
 				save = targetEntityStructure.getJpaRepository().saveAndFlush(bodyObject);
-				
-				publish("create",bodyToMap,save,targetEntityStructure);
-				
 				BeanWrapperImpl saveWrapper = new BeanWrapperImpl(save);
 				retUuid = saveWrapper.getPropertyValue("uuid");
 
 			} else {
 				save = targetEntityStructure.getJpaRepository().saveAndFlush(bodyObject);
-				publish("create",bodyToMap,save,targetEntityStructure);
-				
 				BeanWrapperImpl saveWrapper = new BeanWrapperImpl(save);
 				retUuid = saveWrapper.getPropertyValue("uuid");
 				ownerWrapper.setPropertyValue(subResource, save);
@@ -226,13 +219,11 @@ public class PostService extends BaseService {
 //			}
 		} else if (joinType.equals(ColumnJoinType.ONE_TO_MANY)) {
 
-			Object bodyObject = withoutIdBodyValidation(targetEntityStructure, readObject);
+			Object bodyObject = withoutIdBodyValidationObject(targetEntityStructure, readObject);
+			publish("create",bodyToMap,bodyObject,targetEntityStructure);
 			BeanWrapperImpl bodyObjectWrapper = new BeanWrapperImpl(bodyObject);
 			bodyObjectWrapper.setPropertyValue(columnStucture.getMappedBy(), owner);
 			Object save = targetEntityStructure.getJpaRepository().saveAndFlush(bodyObject);
-			
-			publish("create",bodyToMap,save,targetEntityStructure);
-			
 			BeanWrapperImpl saveWrapper = new BeanWrapperImpl(save);
 			retUuid = saveWrapper.getPropertyValue("uuid");
 
@@ -244,10 +235,10 @@ public class PostService extends BaseService {
 			if (!subResourceOptional.isPresent()) {
 				throw new NotFound404Exception(targetEntityStructure.getName()+":"+bodyId);
 			}
+			publish("link",bodyToMap,subResourceOptional.get(),targetEntityStructure);
 
 			ownerWrapper.setPropertyValue(subResource, subResourceOptional.get());
 			Object save = structure.getJpaRepository().saveAndFlush(owner);
-			publish("create",bodyToMap,save,structure);
 			retUuid = bodyId;
 
 		} else if (joinType.equals(ColumnJoinType.MANY_TO_MANY)) {
@@ -259,17 +250,18 @@ public class PostService extends BaseService {
 				throw new NotFound404Exception(targetEntityStructure.getName()+":"+bodyId);
 			}
 			Object newSubResource = subResourceOptional.get();
+			
+			publish("link",bodyToMap,newSubResource,targetEntityStructure);
+
 			if (columnStucture.getMappedBy() != null) {
 				BeanWrapperImpl newSubResourceWrapper = new BeanWrapperImpl(newSubResource);
 				Object propertyValue = newSubResourceWrapper.getPropertyValue(columnStucture.getMappedBy());
 				((Set) propertyValue).add(owner);
 				Object saveAndFlush = targetEntityStructure.getJpaRepository().saveAndFlush(newSubResource);
-				publish("create",bodyToMap,saveAndFlush,targetEntityStructure);
 			} else {
 				Object propertyValue = ownerWrapper.getPropertyValue(subResource);
 				((Set) propertyValue).add(newSubResource);
 				Object saveAndFlush = structure.getJpaRepository().saveAndFlush(owner);
-				publish("create",bodyToMap,saveAndFlush,structure);
 			}
 			retUuid = bodyId;
 		}
@@ -277,7 +269,7 @@ public class PostService extends BaseService {
 		return httpPostOkResponse;
 	}
 
-	private Object withoutIdBodyValidation(EntityStructure structure, Object body) {
+	private Object withoutIdBodyValidationObject(EntityStructure structure, Object body) {
 
 		BeanWrapperImpl readWrapper = new BeanWrapperImpl(body);
 		Object uuid = readWrapper.getPropertyValue("uuid");
@@ -293,21 +285,11 @@ public class PostService extends BaseService {
 
 	}
 
-	private Object withoutIdBodyValidation(EntityStructure structure, Map<String, Object> bodyToMap) {
+	private Object withoutIdBodyValidationMap(EntityStructure structure, Map<String, Object> bodyToMap) {
 
 		try {
 			Object readObject = CommonUtils.mapToObject(bodyToMap, structure.getEntityClass());
-			BeanWrapperImpl readWrapper = new BeanWrapperImpl(readObject);
-			Object uuid = readWrapper.getPropertyValue("uuid");
-			if (uuid != null) {
-				throw new JsonFormat406Exception("创建对象不允许带uuid");
-			}
-			Map<String, String> validate = CommonUtils.validate(readObject);
-			if (!validate.isEmpty()) {
-
-				throw new Validator422Exception(validate);
-			}
-			return readObject;
+			return withoutIdBodyValidationObject(structure,readObject);
 		} catch (IOException e) {
 			e.printStackTrace();
 			throw new JsonFormat406Exception("json转成对象错误");
@@ -315,7 +297,13 @@ public class PostService extends BaseService {
 	}
 	private Object bodyValidation(EntityStructure structure, Map<String, Object> body, Object old) {
 		try {
+			
+			BeanWrapperImpl beanWrapperImpl = new BeanWrapperImpl(old);
+			String uuid = beanWrapperImpl.getPropertyValue("uuid").toString();
+			body.put("uuid", uuid);
 			Object readObject = CommonUtils.mapToObject(body, structure.getEntityClass());
+			publish("update",body,readObject,structure);
+			
 			CommonUtils.copyPropertiesIgnoreNull(readObject, old);
 			Map<String, String> validate = CommonUtils.validate(old);
 			if (!validate.isEmpty()) {
@@ -394,11 +382,11 @@ public class PostService extends BaseService {
 		return bodyToMap;
 	}
 	
-	private void publish(String defaultEvent, Map<String, Object> bodyToMap, Object save,  EntityStructure entityStructure) {
+	private void publish(String defaultEvent, Map<String, Object> bodyToMap, Object beforeSave,  EntityStructure entityStructure) {
 		if(bodyToMap.containsKey("event")) {
 			defaultEvent = bodyToMap.get("event").toString();
 		}
-		 applicationContext.publishEvent(new RestfulEvent(defaultEvent,save,entityStructure));
+		 applicationContext.publishEvent(new RestfulEvent(defaultEvent,beforeSave,entityStructure));
 	
 	}
 
