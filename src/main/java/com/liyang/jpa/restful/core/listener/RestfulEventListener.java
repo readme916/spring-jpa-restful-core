@@ -15,6 +15,8 @@ import com.liyang.jpa.restful.core.annotation.AllowFields;
 import com.liyang.jpa.restful.core.annotation.ForbidFields;
 import com.liyang.jpa.restful.core.event.RestfulEvent;
 import com.liyang.jpa.restful.core.exception.JpaRestfulException;
+import com.liyang.jpa.restful.core.exception.ServerError500Exception;
+import com.liyang.jpa.restful.core.exception.Validator422Exception;
 
 public abstract class RestfulEventListener<T> implements ApplicationListener<RestfulEvent> {
 
@@ -50,6 +52,8 @@ public abstract class RestfulEventListener<T> implements ApplicationListener<Res
 						e.printStackTrace();
 					}
 				}
+			}else {
+				throw new ServerError500Exception("不支持"+event.getEvent()+"事件");
 			}
 		}
 	}
@@ -63,8 +67,9 @@ public abstract class RestfulEventListener<T> implements ApplicationListener<Res
 		}
 		for (java.beans.PropertyDescriptor pd : pds) {
 			Object srcValue = src.getPropertyValue(pd.getName());
-			if (filter.contains(pd.getName())) {
+			if (srcValue!=null && filter.contains(pd.getName())) {
 				src.setPropertyValue(pd.getName(), null);
+				throw new Validator422Exception("非法字段"+ pd.getName());
 			} else {
 				continue;
 			}
@@ -80,10 +85,11 @@ public abstract class RestfulEventListener<T> implements ApplicationListener<Res
 		}
 		for (java.beans.PropertyDescriptor pd : pds) {
 			Object srcValue = src.getPropertyValue(pd.getName());
-			if (allow.contains(pd.getName()) || pd.getName().equals("class")) {
+			if (allow.contains(pd.getName()) || pd.getName().equals("class")||pd.getName().equals("uuid") || srcValue==null) {
 				continue;
 			} else {
 				src.setPropertyValue(pd.getName(), null);
+				throw new Validator422Exception("非法字段"+ pd.getName());
 			}
 		}
 	}

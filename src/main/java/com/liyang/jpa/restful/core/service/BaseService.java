@@ -77,9 +77,14 @@ public abstract class BaseService implements ApplicationContextAware {
 	private void _checkSubResource(String resource, String subResource) {
 		EntityStructure structure = SmartQuery.getStructure(resource);
 		ColumnStucture columnStucture = structure.getObjectFields().get(subResource);
-		if (columnStucture == null || columnStucture.getJoinType().equals(ColumnJoinType.MANY_TO_MANY)
-				|| columnStucture.getJoinType().equals(ColumnJoinType.MANY_TO_ONE)) {
+		if (columnStucture == null) {
 			throw new NotFound404Exception(subResource + "子资源不存在");
+		}
+		if(columnStucture.getJoinType().equals(ColumnJoinType.MANY_TO_MANY)) {
+			throw new NotFound404Exception(subResource + "不允许MANY_TO_MANY查询方式");
+		}
+		if(columnStucture.getJoinType().equals(ColumnJoinType.MANY_TO_ONE)) {
+			throw new NotFound404Exception(subResource + "不允许MANY_TO_ONE查询方式");
 		}
 	}
 }

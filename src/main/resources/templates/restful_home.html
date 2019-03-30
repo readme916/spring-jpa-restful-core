@@ -48,7 +48,7 @@
 									<td><a th:text="${resource.resourceUri}"
 										th:href="@{${resource.resourceUri}}"></a></td>
 									<td><a th:text="查看"
-										th:href="@{${structurePath}+${resource.resourceUri}}"></a></td>
+										th:href="@{${structurePath}+'/'+${resource.resourceUri}}"></a></td>
 								</tr>
 							</tbody>
 						</table>

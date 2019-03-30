@@ -4,6 +4,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -341,7 +342,7 @@ public class StructureShowController  extends DefaultExceptionHandler{
 				continue;
 			}
 			ObjectProperty objectProperty = new ObjectProperty();
-			if (field.getType() == String.class || CommonUtils.isPackageClass(field.getType())) {
+			if (field.getType() == String.class||field.getType() == Date.class || CommonUtils.isPackageClass(field.getType())) {
 
 				fullResource.getPostStructure().put(field.getName(), _defautlValue(field));
 			} else {
@@ -471,6 +472,9 @@ public class StructureShowController  extends DefaultExceptionHandler{
 		}
 		if (minAnnotation != null) {
 			arrayList.add("Min(" + minAnnotation.value() + ")");
+		}
+		if (maxAnnotation != null) {
+			arrayList.add("Max(" + maxAnnotation.value() + ")");
 		}
 		if (DigitsAnnotation != null) {
 			arrayList.add(
