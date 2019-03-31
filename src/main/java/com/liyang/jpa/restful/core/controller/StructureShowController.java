@@ -5,18 +5,22 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import javax.annotation.PostConstruct;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Transient;
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.Digits;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.Future;
@@ -50,6 +54,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.liyang.jpa.restful.core.annotation.JpaRestfulResource;
+import com.liyang.jpa.restful.core.controller.StructureShowController.RelativeResource;
 import com.liyang.jpa.restful.core.interceptor.JpaRestfulDeleteInterceptor;
 import com.liyang.jpa.restful.core.interceptor.JpaRestfulGetInterceptor;
 import com.liyang.jpa.restful.core.interceptor.JpaRestfulPostInterceptor;
@@ -66,10 +71,10 @@ public class StructureShowController  extends DefaultExceptionHandler{
 	protected final static Logger logger = LoggerFactory.getLogger(StructureShowController.class);
 
 	@Value(value = "${spring.jpa.restful.path}")
-	private String path;
+	private String configPath;
 
 	@Value(value = "${spring.jpa.restful.structure-path}")
-	private String structurePath;
+	private String configStructurePath;
 
 	@Autowired(required = false)
 	private List<JpaRestfulGetInterceptor> gets;
@@ -79,14 +84,29 @@ public class StructureShowController  extends DefaultExceptionHandler{
 
 	@Autowired(required = false)
 	private List<JpaRestfulDeleteInterceptor> deletes;
-
-	@ModelAttribute
-	public void populateModel(Model model) {
-		model.addAttribute("structurePath", "/" + structurePath);
+	
+	
+	private String getStructurePath(HttpServletRequest request) {
+		if(request.getHeader("x-forwarded-prefix")!=null) {
+			return request.getHeader("x-forwarded-prefix")+"/"+this.configStructurePath+"/"+this.configPath;
+		}else {
+			return "/"+this.configStructurePath+"/"+this.configPath;
+		}
+	}
+	private String getPath(HttpServletRequest request) {
+		if(request.getHeader("x-forwarded-prefix")!=null) {
+			return request.getHeader("x-forwarded-prefix")+"/"+this.configPath;
+		}else {
+			return "/"+this.configPath;
+		}
 	}
 
-	@RequestMapping(path = "", method = RequestMethod.GET)
-	public String hello(Model model) {
+	@ModelAttribute
+	public void populateModel(Model model,HttpServletRequest request) {
+		
+		model.addAttribute("structurePath", getStructurePath(request));
+		model.addAttribute("path", getPath(request));
+		
 		ArrayList<SimpleResource> arrayList = new ArrayList<SimpleResource>();
 		HashMap<String, EntityStructure> nametostructure = SmartQuery.getNametostructure();
 		Collection<EntityStructure> values = nametostructure.values();
@@ -95,20 +115,30 @@ public class StructureShowController  extends DefaultExceptionHandler{
 			if (cls.isAnnotationPresent(JpaRestfulResource.class)) {
 				SimpleResource simpleResource = new SimpleResource();
 				simpleResource.setName(entityStructure.getName());
-				simpleResource.setResourceUri("/" + path + "/" + entityStructure.getName());
+				simpleResource.setResourceUri(getPath(request) + "/" + entityStructure.getName());
+				simpleResource.setStructureUri(getStructurePath(request) + "/" + entityStructure.getName());
 				arrayList.add(simpleResource);
 			}
 		}
-		model.addAttribute("resources", arrayList);
-		return "restful_home";
+		
+		model.addAttribute("resourceList", arrayList);
 	}
 
+	@RequestMapping(path = "", method = RequestMethod.GET)
+	public String resource() throws JsonProcessingException {
+		return "restful_home";
+	}
+	
 	@RequestMapping(path = "${spring.jpa.restful.path}/{resource}", method = RequestMethod.GET)
-	public String resource(@PathVariable String resource, Model model) throws JsonProcessingException {
+	public String resource(@PathVariable String resource, Model model,HttpServletRequest request) throws JsonProcessingException {
 		Class<?> entityClass = SmartQuery.getStructure(resource).getEntityClass();
 		FullResource fullResource = new FullResource();
-		fullResource.getRelativeUri().add("/" + path + "/" + resource + "/{id}");
-		fullResource.setResourceUri("/" + path + "/" + resource);
+		
+		RelativeResource relativeResource = new RelativeResource();
+		relativeResource.setResourceUri(getPath(request) + "/" + resource + "/{id}");
+		relativeResource.setStructureUri(getStructurePath(request) + "/" + resource + "/{id}");
+		fullResource.getRelativeUri().add(relativeResource);
+		fullResource.setResourceUri(getPath(request) + "/" + resource);
 		fullResource.setTitle(resource + " - 主资源（列表）");
 		MethodDescription getDescription = new MethodDescription();
 		getDescription.setMethod("GET");
@@ -118,10 +148,10 @@ public class StructureShowController  extends DefaultExceptionHandler{
 		postDescription.setMethod("POST");
 		postDescription.setDescription("创建" + resource + "资源，格式见下");
 		fullResource.setMethods(Arrays.asList(new MethodDescription[] { getDescription, postDescription }));
-		fullResource.setInterceptors(_interceptorParse(fullResource.getResourceUri(), true, false));
+		fullResource.setInterceptors(_interceptorParse(fullResource.getResourceUri(), true, false,request));
 		fullResource.setEvents(SmartQuery.getStructure(resource).getEvents());
 		Field[] declaredFields = entityClass.getDeclaredFields();
-		fillFields(declaredFields, fullResource, "/" + path + "/" + resource, true);
+		fillFields(declaredFields, fullResource, getPath(request) + "/" + resource,getStructurePath(request)+"/"+resource, true);
 
 		HashMap<String, Object> postStructure = fullResource.getPostStructure();
 		ObjectMapper mapper = new ObjectMapper();
@@ -132,7 +162,7 @@ public class StructureShowController  extends DefaultExceptionHandler{
 	}
 
 	@RequestMapping(path = "${spring.jpa.restful.path}/{resource}/{id}", method = RequestMethod.GET)
-	public String resource(@PathVariable String resource, @PathVariable String id, Model model)
+	public String resource(@PathVariable String resource, @PathVariable String id, Model model,HttpServletRequest request)
 			throws JsonProcessingException {
 		Class<?> entityClass = SmartQuery.getStructure(resource).getEntityClass();
 
@@ -141,7 +171,10 @@ public class StructureShowController  extends DefaultExceptionHandler{
 		Map<String, ColumnStucture> objectFields = SmartQuery.getStructure(entityClass).getObjectFields();
 		Set<Entry<String, ColumnStucture>> entrySet = objectFields.entrySet();
 		for (Entry<String, ColumnStucture> entry : entrySet) {
-			fullResource.getRelativeUri().add("/" + path + "/" + resource + "/{id}/" + entry.getKey());
+			RelativeResource relativeResource = new RelativeResource();
+			relativeResource.setResourceUri(getPath(request) + "/" + resource + "/{id}/"+ entry.getKey());
+			relativeResource.setStructureUri(getStructurePath(request) + "/" + resource  + "/{id}/"+ entry.getKey());
+			fullResource.getRelativeUri().add(relativeResource);
 		}
 
 		fullResource.setTitle(resource + " - 主资源（对象）");
@@ -158,11 +191,11 @@ public class StructureShowController  extends DefaultExceptionHandler{
 
 		fullResource.setMethods(
 				Arrays.asList(new MethodDescription[] { getDescription, postDescription, deleteDescription }));
-		fullResource.setResourceUri("/" + path + "/" + resource + "/{id}");
-		fullResource.setInterceptors(_interceptorParse(fullResource.getResourceUri(), true, true));
+		fullResource.setResourceUri(getPath(request)+ "/" + resource + "/{id}");
+		fullResource.setInterceptors(_interceptorParse(fullResource.getResourceUri(), true, true,request));
 		fullResource.setEvents(SmartQuery.getStructure(resource).getEvents());
 		
-		fillFields(declaredFields, fullResource, "/" + path + "/" + resource, true);
+		fillFields(declaredFields, fullResource, getPath(request) + "/" + resource,  getStructurePath(request) + "/" + resource,true);
 		HashMap<String, Object> postStructure = fullResource.getPostStructure();
 		ObjectMapper mapper = new ObjectMapper();
 		String writeValueAsString = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(postStructure);
@@ -173,7 +206,7 @@ public class StructureShowController  extends DefaultExceptionHandler{
 
 	@RequestMapping(path = "${spring.jpa.restful.path}/{resource}/{id}/{subResource}", method = RequestMethod.GET)
 	public Object resource(@PathVariable String resource, @PathVariable String id, @PathVariable String subResource,
-			Model model) throws JsonProcessingException {
+			Model model,HttpServletRequest request) throws JsonProcessingException {
 
 		ColumnStucture columnStucture = SmartQuery.getStructure(resource).getObjectFields().get(subResource);
 		boolean parentStructure = false;
@@ -191,9 +224,12 @@ public class StructureShowController  extends DefaultExceptionHandler{
 		FullResource fullResource = new FullResource();
 
 		if (parentStructure) {
-			fullResource.getRelativeUri().add("/" + path + "/" + resource + "/{id}/" + subResource + "/{id}");
+			RelativeResource relativeResource = new RelativeResource();
+			relativeResource.setResourceUri(getPath(request) + "/" + resource + "/{id}/" + subResource + "/{id}");
+			relativeResource.setStructureUri(getStructurePath(request) + "/" + resource + "/{id}/"+ subResource + "/{id}");
+			fullResource.getRelativeUri().add(relativeResource);
 		}
-		fullResource.setResourceUri("/" + path + "/" + resource + "/{id}/" + subResource);
+		fullResource.setResourceUri(getPath(request) + "/" + resource + "/{id}/" + subResource);
 
 		fullResource.setTitle(subResource + " - 桥接资源（列表）");
 		fullResource.setEvents(SmartQuery.getStructure(entityClass).getEvents());
@@ -215,8 +251,8 @@ public class StructureShowController  extends DefaultExceptionHandler{
 		methods.add(postDescription);
 
 		fullResource.setMethods(methods);
-		fullResource.setInterceptors(_interceptorParse(fullResource.getResourceUri(), parentStructure, false));
-		fillFields(declaredFields, fullResource, "/" + path + "/" + resource + "/{id}/" + subResource, parentStructure);
+		fullResource.setInterceptors(_interceptorParse(fullResource.getResourceUri(), parentStructure, false,request));
+		fillFields(declaredFields, fullResource, getPath(request)+ "/" + resource + "/{id}/" + subResource,getPath(request)+ "/" + resource + "/{id}/" + subResource, parentStructure);
 		HashMap<String, Object> postStructure = fullResource.getPostStructure();
 		ObjectMapper mapper = new ObjectMapper();
 		String writeValueAsString = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(postStructure);
@@ -227,7 +263,7 @@ public class StructureShowController  extends DefaultExceptionHandler{
 
 	@RequestMapping(path = "${spring.jpa.restful.path}/{resource}/{id}/{subResource}/{subId}", method = RequestMethod.GET)
 	public Object resource(@PathVariable String resource, @PathVariable String id, @PathVariable String subResource,
-			@PathVariable String subId, Model model) throws JsonProcessingException {
+			@PathVariable String subId, Model model,HttpServletRequest request) throws JsonProcessingException {
 		ColumnStucture columnStucture = SmartQuery.getStructure(resource).getObjectFields().get(subResource);
 		boolean parentStructure = false;
 		if (columnStucture.getJoinType().equals(ColumnJoinType.ONE_TO_MANY)
@@ -266,7 +302,7 @@ public class StructureShowController  extends DefaultExceptionHandler{
 		methods.add(deleteDescription);
 		fullResource.setMethods(methods);
 
-		fullResource.setInterceptors(_interceptorParse(fullResource.getResourceUri(), parentStructure, true));
+		fullResource.setInterceptors(_interceptorParse(fullResource.getResourceUri(), parentStructure, true,request));
 		fillFields(declaredFields, fullResource, "/" + path + "/" + resource + "/{id}/" + subResource, parentStructure);
 		HashMap<String, Object> postStructure = fullResource.getPostStructure();
 		ObjectMapper mapper = new ObjectMapper();
@@ -278,7 +314,7 @@ public class StructureShowController  extends DefaultExceptionHandler{
 
 	@RequestMapping(path = "${spring.jpa.restful.path}/{resource}/{id}/{subResource}/{subId}/{subsubResource}", method = RequestMethod.GET)
 	public Object resource(@PathVariable String resource, @PathVariable String id, @PathVariable String subResource,
-			@PathVariable String subId, @PathVariable String subsubResource, Model model)
+			@PathVariable String subId, @PathVariable String subsubResource, Model model,HttpServletRequest request)
 			throws JsonProcessingException {
 		Class<?> entityClass = SmartQuery.getStructure(resource).getObjectFields().get(subResource)
 				.getTargetEntity();
@@ -317,7 +353,7 @@ public class StructureShowController  extends DefaultExceptionHandler{
 		methods.add(postDescription);
 
 		fullResource.setMethods(methods);
-		fullResource.setInterceptors(_interceptorParse(fullResource.getResourceUri(), parentStructure, false));
+		fullResource.setInterceptors(_interceptorParse(fullResource.getResourceUri(), parentStructure, false,request));
 		fillFields(declaredFields, fullResource,
 				"/" + path + "/" + resource + "/{id}/" + subResource + "/{id}/" + subsubResource, false);
 		HashMap<String, Object> postStructure = fullResource.getPostStructure();
@@ -328,7 +364,7 @@ public class StructureShowController  extends DefaultExceptionHandler{
 		return "restful_structure";
 	}
 
-	private void fillFields(Field[] declaredFields, FullResource fullResource, String relativePath,
+	private void fillFields(Field[] declaredFields, FullResource fullResource, String resourcePath, String structurePath,
 			boolean parentStructure) {
 		for (Field field : declaredFields) {
 
@@ -347,7 +383,8 @@ public class StructureShowController  extends DefaultExceptionHandler{
 				fullResource.getPostStructure().put(field.getName(), _defautlValue(field));
 			} else {
 				if (parentStructure) {
-					objectProperty.setResourceUri(relativePath + "/{id}/" + field.getName());
+					objectProperty.setResourceUri(resourcePath + "/{id}/" + field.getName());
+					objectProperty.setStructureUri(structurePath + "/{id}/" + field.getName());
 				}
 			}
 			if (transientAnnotation != null) {
@@ -380,8 +417,8 @@ public class StructureShowController  extends DefaultExceptionHandler{
 	}
 
 	private HashMap<String, List<Interceptor>> _interceptorParse(String resourceUri, boolean parentStructure,
-			boolean delete) {
-		String replace = resourceUri.replace("/" + path, "");
+			boolean delete , HttpServletRequest request) {
+		String replace = resourceUri.replace(getPath(request), "");
 
 		ArrayList<Interceptor> getList = new ArrayList<Interceptor>();
 		ArrayList<Interceptor> postList = new ArrayList<Interceptor>();
@@ -515,7 +552,7 @@ public class StructureShowController  extends DefaultExceptionHandler{
 		private List<MethodDescription> methods;
 		private HashMap<String, Object> postStructure = new HashMap();
 		private String postStructureString;
-		private ArrayList<String> relativeUri = new ArrayList();
+		private ArrayList<RelativeResource> relativeUri = new ArrayList();
 		private String resourceUri;
 		private HashMap<String, List<Interceptor>> interceptors = new HashMap();
 		private HashMap<String, Object> fields = new HashMap();
@@ -562,11 +599,11 @@ public class StructureShowController  extends DefaultExceptionHandler{
 			this.postStructure = postStructure;
 		}
 
-		public ArrayList<String> getRelativeUri() {
+		public ArrayList<RelativeResource> getRelativeUri() {
 			return relativeUri;
 		}
 
-		public void setRelativeUri(ArrayList<String> relativeUri) {
+		public void setRelativeUri(ArrayList<RelativeResource> relativeUri) {
 			this.relativeUri = relativeUri;
 		}
 
@@ -618,13 +655,41 @@ public class StructureShowController  extends DefaultExceptionHandler{
 
 	}
 
+	
+	public static class RelativeResource{
+		private String resourceUri;
+		private String structureUri;
+		public String getResourceUri() {
+			return resourceUri;
+		}
+		public void setResourceUri(String resourceUri) {
+			this.resourceUri = resourceUri;
+		}
+		public String getStructureUri() {
+			return structureUri;
+		}
+		public void setStructureUri(String structureUri) {
+			this.structureUri = structureUri;
+		}
+		
+	}
+	
 	public static class ObjectProperty {
 		private String lifeCycle;
 		private String dataType;
 		private String resourceUri;
+		private String structureUri;
 		private String name;
 		private String relationship;
 		private ArrayList<String> constraints = new ArrayList();
+
+		public String getStructureUri() {
+			return structureUri;
+		}
+
+		public void setStructureUri(String structureUri) {
+			this.structureUri = structureUri;
+		}
 
 		public String getLifeCycle() {
 			return lifeCycle;
@@ -742,6 +807,15 @@ public class StructureShowController  extends DefaultExceptionHandler{
 	public static class SimpleResource {
 		private String name;
 		private String resourceUri;
+		private String structureUri;
+		
+		public String getStructureUri() {
+			return structureUri;
+		}
+
+		public void setStructureUri(String structureUri) {
+			this.structureUri = structureUri;
+		}
 
 		public String getName() {
 			return name;
