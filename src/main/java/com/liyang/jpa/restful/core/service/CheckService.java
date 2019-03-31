@@ -1,6 +1,9 @@
 package com.liyang.jpa.restful.core.service;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -13,6 +16,8 @@ import org.springframework.core.ResolvableType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 
+import com.liyang.jpa.restful.core.annotation.AllowFields;
+import com.liyang.jpa.restful.core.annotation.ForbidFields;
 import com.liyang.jpa.restful.core.annotation.JpaRestfulResource;
 import com.liyang.jpa.restful.core.domain.BaseEntity;
 import com.liyang.jpa.restful.core.listener.RestfulEventListener;
@@ -55,19 +60,35 @@ public class CheckService implements ApplicationContextAware,InitializingBean  {
 			EntityStructure structure = SmartQuery.getStructure(entityClass);
 			
 			Set<String> events = structure.getEvents();
-//			events.add("create");
-//			events.add("linkCreate");
-//			events.add("update");
-//			events.add("linkUpdate");
-//			events.add("delete");
-//			events.add("linkDelete");
-			
 			Method[] declaredMethods = listener.getClass().getDeclaredMethods();
 			for (Method method : declaredMethods) {
 				if(method.getName().startsWith("on") && !method.getName().equals("onApplicationEvent")) {
-					String substring = method.getName().substring(2);
-					substring = substring.substring(0, 1).toLowerCase() + substring.substring(1);
-					events.add(substring);
+					String eventName = method.getName().substring(2);
+					eventName = eventName.substring(0, 1).toLowerCase() + eventName.substring(1);
+					String allowString = "";
+					
+					HashSet<String> hashSet = new HashSet<String>();
+					hashSet.addAll(structure.getSimpleFields().keySet());
+					hashSet.remove("createdBy");
+					hashSet.remove("createdAt");
+					hashSet.remove("modifiedAt");
+					hashSet.remove("modifiedBy");
+					
+					AllowFields allowAnnotation = method.getAnnotation(AllowFields.class);
+					if (allowAnnotation != null) {
+						allowString = String.join(",", allowAnnotation.value());
+						
+					} else {
+						ForbidFields forbidAnnotation = method.getAnnotation(ForbidFields.class);
+						if (forbidAnnotation != null) {
+							hashSet.removeAll(Arrays.asList(forbidAnnotation.value()));
+							allowString = String.join(",", hashSet);
+						}else {
+							allowString = "默认";
+						}
+					}
+					
+					events.add(eventName + " [ "+ allowString + " ]");
 				}
 			}
 			

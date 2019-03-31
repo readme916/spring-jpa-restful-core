@@ -71,8 +71,8 @@
 						<h3 class="panel-title">资源地址</h3>
 					</div>
 					<div class="panel-body">
-						<a th:text="${resource.resourceUri}"
-							th:href="@{${resource.resourceUri}}"></a>
+						<a th:text="${resource.resource.resourceUri}"
+							th:href="@{${resource.resource.structureUri}}"></a>
 					</div>
 
 				</div>
@@ -175,7 +175,7 @@
 				</div>
 				<div class="panel panel-primary">
 					<div class="panel-heading">
-						<h3 class="panel-title">POST提交格式</h3>
+						<h3 class="panel-title">默认POST提交格式</h3>
 					</div>
 					<div class="panel-body">
 						<pre th:text="${resource.postStructureString}"></pre>
@@ -206,7 +206,7 @@
 									<td th:text="${m.value.dataType}"></td>
 									<td th:text="${m.value.relationship}"></td>
 									<td><a th:text="${m.value.resourceUri}"
-										th:href="@{${structurePath}+${m.value.resourceUri}}"> </a></td>
+										th:href="@{${m.value.structureUri}}"> </a></td>
 									<td>
 										<ul th:if="${not #lists.isEmpty(m.value.constraints)}">
 											<li th:each="c : ${m.value.constraints}" th:text="${c}"></li>
@@ -224,9 +224,9 @@
 						<h3 class="panel-title">相关资源</h3>
 					</div>
 					<div class="panel-body">
-						<ul th:if="${not #lists.isEmpty(resource.relativeUri)}">
-							<li th:each="r : ${resource.relativeUri}"><a th:text="${r}"
-								th:href="@{${structurePath}+${r}}"> </a></li>
+						<ul th:if="${not #lists.isEmpty(resource.relativeResource)}">
+							<li th:each="r : ${resource.relativeResource}"><a th:text="${r.resourceUri}"
+								th:href="@{${r.structureUri}}"> </a></li>
 
 						</ul>
 					</div>
