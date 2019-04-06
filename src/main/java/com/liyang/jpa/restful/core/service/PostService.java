@@ -89,7 +89,7 @@ public class PostService extends BaseService {
 
 		HTTPPostOkResponse httpPostOkResponse = subResourceCreate(structure, owner, subResource, bodyToMap);
 		
-		publish("update",bodyToMap,owner,structure);
+		publish("update",null,owner,structure);
 		
 		return applyPostInterceptor(requestPath, httpPostOkResponse, context);
 	}
@@ -117,7 +117,7 @@ public class PostService extends BaseService {
 		
 		HTTPPostOkResponse httpPostOkResponse = subResourceCreate(subStructure, owner, subsubResource, bodyToMap);
 		
-		publish("update",bodyToMap,owner,subStructure);
+		publish("update",null,owner,subStructure);
 		
 		return applyPostInterceptor(requestPath, httpPostOkResponse, context);
 	}
@@ -383,7 +383,7 @@ public class PostService extends BaseService {
 	}
 	
 	private void publish(String defaultEvent, Map<String, Object> bodyToMap, Object owner,  EntityStructure ownerStructure) {
-		if(bodyToMap.containsKey("event")) {
+		if(bodyToMap!=null && bodyToMap.containsKey("event")) {
 			defaultEvent = bodyToMap.get("event").toString();
 		}
 		 applicationContext.publishEvent(new RestfulEvent(defaultEvent,owner,ownerStructure));
