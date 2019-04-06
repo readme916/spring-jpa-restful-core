@@ -45,7 +45,7 @@ public class DeleteService extends BaseService {
 	@Transactional(readOnly = false)
 	public Object delete(String resource, String resourceId) {
 		checkResource(resource, null);
-		HashMap<Object, Object> context = new HashMap<Object, Object>();
+		HashMap<String, Object> context = new HashMap<String, Object>();
 		EntityStructure structure = SmartQuery.getStructure(resource);
 		Object oldInstance;
 		Optional oldInstanceOptional = structure.getJpaRepository().findById(resourceId);
@@ -67,7 +67,7 @@ public class DeleteService extends BaseService {
 	@Transactional(readOnly = false)
 	public Object delete(String resource, String resourceId, String subResource, String subResourceId) {
 		checkResource(resource, null);
-		HashMap<Object, Object> context = new HashMap<Object, Object>();
+		HashMap<String, Object> context = new HashMap<String, Object>();
 		EntityStructure structure = SmartQuery.getStructure(resource);
 		long fetchCount = SmartQuery.fetchCount(resource,
 				"uuid=" + resourceId + "&" + subResource + ".uuid=" + subResourceId);
@@ -87,9 +87,10 @@ public class DeleteService extends BaseService {
 			String requestPath = "/" + resource + "/" + resourceId + "/" + subResource + "/" + subResourceId;
 			applyPreInterceptor(requestPath, subResourceObject, context);
 			
+			subDelete(structure, owner, subResource, subResourceStructure, subResourceObject);
+			publish("update",owner,structure);
 			publish("unlink",subResourceObject,subResourceStructure);
 			
-			subDelete(structure, owner, subResource, subResourceStructure, subResourceObject);
 			HTTPPostOkResponse httpPostOkResponse = new HTTPPostOkResponse();
 			httpPostOkResponse.setUuid(subResourceId);
 			return applyPostInterceptor(requestPath, httpPostOkResponse, context);
@@ -195,7 +196,7 @@ public class DeleteService extends BaseService {
 		}
 	}
 
-	private boolean applyPreInterceptor(String requestPath, Object oldInstance, Map<Object, Object> context) {
+	private boolean applyPreInterceptor(String requestPath, Object ownerInstance, Map<String, Object> context) {
 		if (this.interceptors != null && this.interceptors.size() != 0) {
 
 			PathMatcher matcher = new AntPathMatcher();
@@ -213,7 +214,7 @@ public class DeleteService extends BaseService {
 						matched = true;
 					}
 				}
-				if (matched && !interceptor.preHandle(requestPath, oldInstance, context)) {
+				if (matched && !interceptor.preHandle(requestPath, ownerInstance, context)) {
 					throw new AccessDeny403Exception("被拦截器"+interceptor.name()+"拦截");
 				}
 			}
@@ -222,7 +223,7 @@ public class DeleteService extends BaseService {
 	}
 
 	private HTTPPostOkResponse applyPostInterceptor(String requestPath, HTTPPostOkResponse httpPostOkResponse,
-			Map<Object, Object> context) {
+			Map<String, Object> context) {
 		if (this.interceptors != null && this.interceptors.size() != 0) {
 
 			PathMatcher matcher = new AntPathMatcher();

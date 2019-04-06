@@ -2,12 +2,12 @@ package com.liyang.jpa.restful.core.interceptor;
 
 public interface JpaRestfulInterceptor {
 
-	String name();
+	public String name();
 
-	String description();
+	public String description();
 
-	String[] path();
+	public String[] path();
 
-	int order();
+	public int order();
 
 }

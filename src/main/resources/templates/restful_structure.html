@@ -160,11 +160,25 @@
 					</div>
 
 				</div>
+				<div class="panel panel-primary">
+					<div class="panel-heading">
+						<h3 class="panel-title">实体的默认事件（扩展RestfulEventListener 可以捕获）</h3>
+					</div>
+					<div class="panel-body">
+						<ul>
+						<li>create</li>
+						<li>update</li>
+						<li>delete</li>
+						<li>link（被链接）</li>
+						<li>unlink（被解除链接）</li>
+						</ul>
+					</div>
 
+				</div>
 
 				<div class="panel panel-primary">
 					<div class="panel-heading">
-						<h3 class="panel-title">自定义的事件（post格式中event字段）</h3>
+						<h3 class="panel-title">实体的自定义事件（post格式中event字段）</h3>
 					</div>
 					<div class="panel-body">
 						<ul th:if="${not #sets.isEmpty(resource.events)}"  th:each="i : ${resource.events}">

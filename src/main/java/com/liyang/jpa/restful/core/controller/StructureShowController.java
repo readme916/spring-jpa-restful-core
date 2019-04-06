@@ -157,6 +157,7 @@ public class StructureShowController extends DefaultExceptionHandler {
 				getStructurePath(request) + "/" + resource, true);
 
 		HashMap<String, Object> postStructure = fullResource.getPostStructure();
+		postStructure.remove("uuid");
 		ObjectMapper mapper = new ObjectMapper();
 		String writeValueAsString = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(postStructure);
 		fullResource.setPostStructureString(writeValueAsString);
@@ -265,6 +266,9 @@ public class StructureShowController extends DefaultExceptionHandler {
 		fillFields(declaredFields, fullResource, getPath(request) + "/" + resource + "/{id}/" + subResource,
 				getStructurePath(request) + "/" + resource + "/{id}/" + subResource, parentStructure);
 		HashMap<String, Object> postStructure = fullResource.getPostStructure();
+		if(parentStructure) {
+			postStructure.remove("uuid");
+		}
 		ObjectMapper mapper = new ObjectMapper();
 		String writeValueAsString = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(postStructure);
 		fullResource.setPostStructureString(writeValueAsString);
@@ -353,9 +357,9 @@ public class StructureShowController extends DefaultExceptionHandler {
 		fullResource.setEvents(SmartQuery.getStructure(entityClass).getEvents());
 		ResourceUrl resourceUrl = new ResourceUrl();
 		resourceUrl
-				.setResourceUri(getPath(request) + "/" + resource + "/{id}/" + subResource + "/{id}" + subsubResource);
+				.setResourceUri(getPath(request) + "/" + resource + "/{id}/" + subResource + "/{id}/" + subsubResource);
 		resourceUrl.setStructureUri(
-				getStructurePath(request) + "/" + resource + "/{id}/" + subResource + "/{id}" + subsubResource);
+				getStructurePath(request) + "/" + resource + "/{id}/" + subResource + "/{id}/" + subsubResource);
 		fullResource.setResource(resourceUrl);
 
 		fullResource.setTitle(subsubResource + " - 桥接资源（列表）");
@@ -382,6 +386,9 @@ public class StructureShowController extends DefaultExceptionHandler {
 				getPath(request) + "/" + resource + "/{id}/" + subResource + "/{id}/" + subsubResource,
 				getStructurePath(request) + "/" + resource + "/{id}/" + subResource + "/{id}/" + subsubResource, false);
 		HashMap<String, Object> postStructure = fullResource.getPostStructure();
+		if(parentStructure) {
+			postStructure.remove("uuid");
+		}
 		ObjectMapper mapper = new ObjectMapper();
 		String writeValueAsString = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(postStructure);
 		fullResource.setPostStructureString(writeValueAsString);

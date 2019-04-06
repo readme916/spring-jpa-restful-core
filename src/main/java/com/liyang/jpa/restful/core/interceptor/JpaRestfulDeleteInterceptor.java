@@ -7,9 +7,9 @@ import com.liyang.jpa.restful.core.response.HTTPPostOkResponse;
 
 public interface JpaRestfulDeleteInterceptor extends JpaRestfulInterceptor  {
 
-	boolean preHandle(String requestPath, Object oldInstance, Map<Object,Object> context);
+	public boolean preHandle(String requestPath, Object onwerInstance, Map<String,Object> context);
 
-	HTTPPostOkResponse postHandle(String requestPath, HTTPPostOkResponse httpPostOkResponse, Map<Object,Object> context);
+	public HTTPPostOkResponse postHandle(String requestPath, HTTPPostOkResponse httpPostOkResponse, Map<String,Object> context);
 
 
 }
