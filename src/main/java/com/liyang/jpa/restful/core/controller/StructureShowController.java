@@ -63,6 +63,7 @@ import com.liyang.jpa.smart.query.db.SmartQuery;
 import com.liyang.jpa.smart.query.db.structure.ColumnJoinType;
 import com.liyang.jpa.smart.query.db.structure.ColumnStucture;
 import com.liyang.jpa.smart.query.db.structure.EntityStructure;
+import com.liyang.jpa.smart.query.db.structure.EntityStructure.EntityEvent;
 
 @Controller
 @RequestMapping("${spring.jpa.restful.structure-path}")
@@ -592,13 +593,13 @@ public class StructureShowController extends DefaultExceptionHandler {
 		private ResourceUrl resource;
 		private HashMap<String, List<Interceptor>> interceptors = new HashMap();
 		private HashMap<String, Object> fields = new HashMap();
-		private HashSet<String> events = new HashSet();
+		private HashSet<EntityEvent> events = new HashSet();
 
-		public HashSet<String> getEvents() {
+		public HashSet<EntityEvent> getEvents() {
 			return events;
 		}
 
-		public void setEvents(HashSet<String> events) {
+		public void setEvents(HashSet<EntityEvent> events) {
 			this.events = events;
 		}
 

@@ -16,6 +16,7 @@ import org.springframework.core.ResolvableType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 
+import com.liyang.jpa.restful.core.annotation.AllowCondition;
 import com.liyang.jpa.restful.core.annotation.AllowFields;
 import com.liyang.jpa.restful.core.annotation.ForbidFields;
 import com.liyang.jpa.restful.core.annotation.JpaRestfulResource;
@@ -23,6 +24,7 @@ import com.liyang.jpa.restful.core.domain.BaseEntity;
 import com.liyang.jpa.restful.core.listener.RestfulEventListener;
 import com.liyang.jpa.smart.query.db.SmartQuery;
 import com.liyang.jpa.smart.query.db.structure.EntityStructure;
+import com.liyang.jpa.smart.query.db.structure.EntityStructure.EntityEvent;
 import com.liyang.jpa.smart.query.exception.StructureException;
 
 @Service
@@ -59,13 +61,16 @@ public class CheckService implements ApplicationContextAware,InitializingBean  {
 			}
 			EntityStructure structure = SmartQuery.getStructure(entityClass);
 			
-			Set<String> events = structure.getEvents();
+			HashSet<EntityEvent> events = structure.getEvents();
 			Method[] declaredMethods = listener.getClass().getDeclaredMethods();
 			for (Method method : declaredMethods) {
 				if(method.getName().startsWith("on") && !method.getName().equals("onApplicationEvent")) {
+					
+					EntityEvent entityEvent = new EntityEvent();
+					
 					String eventName = method.getName().substring(2);
 					eventName = eventName.substring(0, 1).toLowerCase() + eventName.substring(1);
-					String allowString = "";
+					entityEvent.setName(eventName);
 					
 					HashSet<String> hashSet = new HashSet<String>();
 					hashSet.addAll(structure.getSimpleFields().keySet());
@@ -76,19 +81,22 @@ public class CheckService implements ApplicationContextAware,InitializingBean  {
 					
 					AllowFields allowAnnotation = method.getAnnotation(AllowFields.class);
 					if (allowAnnotation != null) {
-						allowString = String.join(",", allowAnnotation.value());
-						
+						entityEvent.setFields(new HashSet<String>(Arrays.asList(allowAnnotation.value())));
 					} else {
 						ForbidFields forbidAnnotation = method.getAnnotation(ForbidFields.class);
 						if (forbidAnnotation != null) {
 							hashSet.removeAll(Arrays.asList(forbidAnnotation.value()));
-							allowString = String.join(",", hashSet);
+							entityEvent.setFields(hashSet);
 						}else {
-							allowString = "默认";
+							entityEvent.setFields(hashSet);
 						}
 					}
+					AllowCondition allowCondition = method.getAnnotation(AllowCondition.class);
+					if (allowCondition != null) {
+						entityEvent.setCondition(allowCondition.value());
+					}
 					
-					events.add(eventName + " [ "+ allowString + " ]");
+					events.add(entityEvent);
 				}
 			}
 			

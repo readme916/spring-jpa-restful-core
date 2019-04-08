@@ -9,14 +9,20 @@ import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.ResolvableType;
+import org.springframework.expression.ExpressionParser;
+import org.springframework.expression.common.TemplateParserContext;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.util.ReflectionUtils;
 
+import com.liyang.jpa.restful.core.annotation.AllowCondition;
 import com.liyang.jpa.restful.core.annotation.AllowFields;
 import com.liyang.jpa.restful.core.annotation.ForbidFields;
 import com.liyang.jpa.restful.core.event.RestfulEvent;
+import com.liyang.jpa.restful.core.exception.Business503Exception;
 import com.liyang.jpa.restful.core.exception.JpaRestfulException;
 import com.liyang.jpa.restful.core.exception.ServerError500Exception;
 import com.liyang.jpa.restful.core.exception.Validator422Exception;
+import com.liyang.jpa.restful.core.utils.SpelContext;
 
 public abstract class RestfulEventListener<T> implements ApplicationListener<RestfulEvent> {
 
@@ -41,6 +47,12 @@ public abstract class RestfulEventListener<T> implements ApplicationListener<Res
 					}
 				}
 
+				AllowCondition allowCondition = findMethod.getAnnotation(AllowCondition.class);
+				if (allowCondition != null) {
+					allowCondition(event.getSource(), allowCondition.value());
+				}
+				
+				
 				try {
 					findMethod.invoke(this, event.getSource());
 				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
@@ -58,6 +70,17 @@ public abstract class RestfulEventListener<T> implements ApplicationListener<Res
 		}
 	}
 
+	private void allowCondition(Object source, String condition) {
+		SpelContext spelContext = new SpelContext(source);
+		ExpressionParser parser = new SpelExpressionParser();
+		Boolean ret = parser.parseExpression(condition, new TemplateParserContext())
+				.getValue(spelContext, Boolean.class);
+		if(!ret) {
+			throw new Business503Exception(1321,"非法操作",condition);
+		}
+		
+	}
+
 	private void forbidField(Object obj, String[] filterField) {
 		final BeanWrapper src = new BeanWrapperImpl(obj);
 		java.beans.PropertyDescriptor[] pds = src.getPropertyDescriptors();
@@ -68,7 +91,6 @@ public abstract class RestfulEventListener<T> implements ApplicationListener<Res
 		for (java.beans.PropertyDescriptor pd : pds) {
 			Object srcValue = src.getPropertyValue(pd.getName());
 			if (srcValue!=null && filter.contains(pd.getName())) {
-				src.setPropertyValue(pd.getName(), null);
 				throw new Validator422Exception("非法字段"+ pd.getName());
 			} else {
 				continue;

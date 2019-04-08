@@ -59,9 +59,8 @@ public class PostService extends BaseService {
 
 		EntityStructure structure = SmartQuery.getStructure(resource);
 		Object readObject = withoutIdBodyValidationMap(structure, bodyToMap);
+		publish("create",bodyToMap,readObject,structure);
 		Object save = structure.getJpaRepository().saveAndFlush(readObject);
-		
-		publish("create",bodyToMap,save,structure);
 		BeanWrapperImpl saveImpl = new BeanWrapperImpl(save);
 		Object savedUUID = saveImpl.getPropertyValue("uuid");
 		HTTPPostOkResponse httpPostOkResponse = new HTTPPostOkResponse();
@@ -86,10 +85,11 @@ public class PostService extends BaseService {
 		}
 		String requestPath = "/" + resource + "/" + resourceId + "/" + subResource;
 		applyPreInterceptor(requestPath, bodyToMap, owner, context);
+	
+		publish("link",bodyToMap,owner,structure);
 
 		HTTPPostOkResponse httpPostOkResponse = subResourceCreate(structure, owner, subResource, bodyToMap);
 		
-		publish("update",null,owner,structure);
 		
 		return applyPostInterceptor(requestPath, httpPostOkResponse, context);
 	}
@@ -115,9 +115,10 @@ public class PostService extends BaseService {
 		
 		applyPreInterceptor(requestPath, bodyToMap, owner, context);
 		
+		publish("link",bodyToMap,owner,subStructure);
+		
 		HTTPPostOkResponse httpPostOkResponse = subResourceCreate(subStructure, owner, subsubResource, bodyToMap);
 		
-		publish("update",null,owner,subStructure);
 		
 		return applyPostInterceptor(requestPath, httpPostOkResponse, context);
 	}
@@ -200,6 +201,7 @@ public class PostService extends BaseService {
 				throw new ServerError500Exception(subResource+"子资源已经存在");
 			}
 			Object bodyObject = withoutIdBodyValidationObject(targetEntityStructure, readObject);
+			publish("create",bodyToMap,bodyObject,targetEntityStructure);
 			Object save;
 			if (columnStucture.getMappedBy() != null) {
 				BeanWrapperImpl bodyObjectWrapper = new BeanWrapperImpl(bodyObject);
@@ -216,17 +218,16 @@ public class PostService extends BaseService {
 				structure.getJpaRepository().saveAndFlush(owner);
 
 			}
-			publish("create",bodyToMap,save,targetEntityStructure);
 			
 		} else if (joinType.equals(ColumnJoinType.ONE_TO_MANY)) {
 
 			Object bodyObject = withoutIdBodyValidationObject(targetEntityStructure, readObject);
+			publish("create",bodyToMap,bodyObject,targetEntityStructure);
 			BeanWrapperImpl bodyObjectWrapper = new BeanWrapperImpl(bodyObject);
 			bodyObjectWrapper.setPropertyValue(columnStucture.getMappedBy(), owner);
 			Object save = targetEntityStructure.getJpaRepository().saveAndFlush(bodyObject);
 			BeanWrapperImpl saveWrapper = new BeanWrapperImpl(save);
 			retUuid = saveWrapper.getPropertyValue("uuid");
-			publish("create",bodyToMap,save,targetEntityStructure);
 
 		} else if (joinType.equals(ColumnJoinType.MANY_TO_ONE)) {
 			if (bodyId == null) {

@@ -169,8 +169,8 @@
 						<li>create</li>
 						<li>update</li>
 						<li>delete</li>
-						<li>link（被链接）</li>
-						<li>unlink（被解除链接）</li>
+						<li>link</li>
+						<li>unlink</li>
 						</ul>
 					</div>
 
@@ -184,6 +184,23 @@
 						<ul th:if="${not #sets.isEmpty(resource.events)}"  th:each="i : ${resource.events}">
 						<li th:text="${i}"></li>
 						</ul>
+						
+						<table class="table" th:if="${not #sets.isEmpty(resource.events)}" >
+							<thead>
+								<tr>
+									<th>名称</th>
+									<th>允许字段</th>
+									<th>允许条件</th>
+									<th>操作角色</th>
+								</tr>
+							</thead>
+							<tbody>
+							<tr th:each="e : ${resource.events}">
+									<td th:text="${e.name}"></td>
+									<td th:text="${e.fields}"></td>
+									<td th:text="${e.condition}"></td>
+									<td th:text="${e.roles}"></td>
+							</tbody>
 					</div>
 
 				</div>
