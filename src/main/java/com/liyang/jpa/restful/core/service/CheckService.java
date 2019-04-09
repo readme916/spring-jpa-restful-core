@@ -3,10 +3,13 @@ package com.liyang.jpa.restful.core.service;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
@@ -21,10 +24,12 @@ import com.liyang.jpa.restful.core.annotation.AllowFields;
 import com.liyang.jpa.restful.core.annotation.ForbidFields;
 import com.liyang.jpa.restful.core.annotation.JpaRestfulResource;
 import com.liyang.jpa.restful.core.domain.BaseEntity;
-import com.liyang.jpa.restful.core.listener.RestfulEventListener;
+import com.liyang.jpa.restful.core.event.EventManager;
+import com.liyang.jpa.restful.core.utils.CommonUtils;
+import com.liyang.jpa.restful.core.utils.EntityStructureEx;
+import com.liyang.jpa.restful.core.utils.EntityStructureEx.EntityEvent;
 import com.liyang.jpa.smart.query.db.SmartQuery;
 import com.liyang.jpa.smart.query.db.structure.EntityStructure;
-import com.liyang.jpa.smart.query.db.structure.EntityStructure.EntityEvent;
 import com.liyang.jpa.smart.query.exception.StructureException;
 
 @Service
@@ -32,13 +37,32 @@ import com.liyang.jpa.smart.query.exception.StructureException;
 public class CheckService implements ApplicationContextAware,InitializingBean  {
 
 	private ApplicationContext applicationContext;
+	
+	public static HashMap<String, EntityStructureEx> nameToStructure = new HashMap();
+
+	public static HashMap<Class<?>, EntityStructureEx> classToStructure = new HashMap();
+	
+	
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		this.applicationContext = applicationContext;
+		HashMap<Class<?>,EntityStructure> classtostructure2 = SmartQuery.getClasstostructure();
+		HashMap<String,EntityStructure> nametostructure2 = SmartQuery.getNametostructure();
 		
+		Set<Entry<String,EntityStructure>> entrySet = nametostructure2.entrySet();
+		for (Entry<String, EntityStructure> entry : entrySet) {
+			EntityStructureEx entityStructureEx = new EntityStructureEx();
+			BeanUtils.copyProperties(entry.getValue(), entityStructureEx);
+			nameToStructure.put(entry.getKey(), entityStructureEx);
+			classToStructure.put(entry.getValue().getEntityClass(), entityStructureEx);
+		}
 	}
+	
+	
 	@Override
 	public void afterPropertiesSet() throws Exception {
+		
+		
 		Map<String, JpaRepository> beans = applicationContext.getBeansOfType(JpaRepository.class);
 		for (JpaRepository jpaRepository : beans.values()) {
 			ResolvableType resolvableType = ResolvableType.forClass(jpaRepository.getClass());
@@ -51,20 +75,22 @@ public class CheckService implements ApplicationContextAware,InitializingBean  {
 				}
 			}
 		}
-	    Map<String, RestfulEventListener> beansOfListener= applicationContext.getBeansOfType(RestfulEventListener.class);
-		for (RestfulEventListener listener : beansOfListener.values()) {
-			ResolvableType resolvableType = ResolvableType.forClass(listener.getClass());
-			Class<?> entityClass = resolvableType.as(RestfulEventListener.class).getGeneric(0).resolve();
-			JpaRestfulResource tableAnnotation = entityClass.getDeclaredAnnotation(JpaRestfulResource.class);
-			if(tableAnnotation==null) {
-				continue;
+	    Map<String, EventManager> eventManagers= applicationContext.getBeansOfType(EventManager.class);
+		for (EventManager manager : eventManagers.values()) {
+			ResolvableType resolvableType = ResolvableType.forClass(manager.getClass());
+			Class<?> entityClass = resolvableType.as(EventManager.class).getGeneric(0).resolve();
+			EntityStructureEx structure = CommonUtils.getStructure(entityClass);
+			if(structure.getEventManager()!=null) {
+				throw new StructureException(entityClass.getSimpleName()+"不允许多个事件管理器");
+			}else {
+				structure.setEventManager(manager);
 			}
-			EntityStructure structure = SmartQuery.getStructure(entityClass);
 			
+			//分析事件管理器内部定义事件
 			HashSet<EntityEvent> events = structure.getEvents();
-			Method[] declaredMethods = listener.getClass().getDeclaredMethods();
+			Method[] declaredMethods = manager.getClass().getDeclaredMethods();
 			for (Method method : declaredMethods) {
-				if(method.getName().startsWith("on") && !method.getName().equals("onApplicationEvent")) {
+				if(method.getName().startsWith("on")) {
 					
 					EntityEvent entityEvent = new EntityEvent();
 					

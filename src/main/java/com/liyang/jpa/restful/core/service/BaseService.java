@@ -6,8 +6,10 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.liyang.jpa.restful.core.annotation.JpaRestfulResource;
+import com.liyang.jpa.restful.core.event.EventManager;
 import com.liyang.jpa.restful.core.exception.NotFound404Exception;
 import com.liyang.jpa.restful.core.exception.ServerError500Exception;
 import com.liyang.jpa.restful.core.utils.CommonUtils;
@@ -86,5 +88,14 @@ public abstract class BaseService implements ApplicationContextAware {
 		if(columnStucture.getJoinType().equals(ColumnJoinType.MANY_TO_ONE)) {
 			throw new NotFound404Exception(subResource + "不允许MANY_TO_ONE查询方式");
 		}
+	}
+	
+	@Transactional(readOnly = false)
+	protected void publishEvent(String defaultEvent, Map<String, Object> bodyToMap, Object oldInstance) {
+		if(bodyToMap!=null && bodyToMap.containsKey("event")) {
+			defaultEvent = bodyToMap.get("event").toString();
+		}
+		EventManager entityManager = CommonUtils.getStructure(oldInstance.getClass()).getEventManager();
+		entityManager.dispatch(defaultEvent,bodyToMap,oldInstance);
 	}
 }

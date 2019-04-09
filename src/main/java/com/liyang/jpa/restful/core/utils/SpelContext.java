@@ -3,19 +3,19 @@ package com.liyang.jpa.restful.core.utils;
 
 public class SpelContext {
 
-	private Object entity;
+	private Object old;
 
-	public Object getEntity() {
-		return entity;
+	public Object getOld() {
+		return old;
 	}
 
-	public void setEntity(Object entity) {
-		this.entity = entity;
+	public void setOld(Object old) {
+		this.old = old;
 	}
 
-	public SpelContext(Object entity) {
+	public SpelContext(Object old) {
 		super();
-		this.entity = entity;
+		this.old = old;
 	}
-	
+
 }

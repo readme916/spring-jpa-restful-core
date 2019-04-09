@@ -1,7 +1,6 @@
 package com.liyang.jpa.restful.core.service;
 
 import java.io.IOException;
-import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -20,9 +19,7 @@ import org.springframework.util.AntPathMatcher;
 import org.springframework.util.PathMatcher;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.liyang.jpa.restful.core.event.RestfulEvent;
 import com.liyang.jpa.restful.core.exception.AccessDeny403Exception;
-import com.liyang.jpa.restful.core.exception.Business503Exception;
 import com.liyang.jpa.restful.core.exception.JsonFormat406Exception;
 import com.liyang.jpa.restful.core.exception.NotFound404Exception;
 import com.liyang.jpa.restful.core.exception.ServerError500Exception;
@@ -47,8 +44,7 @@ public class PostService extends BaseService {
 		this.interceptors = applicationContext.getBeansOfType(JpaRestfulPostInterceptor.class);
 		this.applicationContext = applicationContext;
 	}
-	
-	
+
 	@Transactional(readOnly = false)
 	public Object create(String resource, String body) {
 		checkResource(resource, null);
@@ -58,8 +54,13 @@ public class PostService extends BaseService {
 		applyPreInterceptor(requestPath, bodyToMap, null, context);
 
 		EntityStructure structure = SmartQuery.getStructure(resource);
+		try {
+			publishEvent("create", bodyToMap, structure.getEntityClass().newInstance());
+		} catch (InstantiationException | IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		Object readObject = withoutIdBodyValidationMap(structure, bodyToMap);
-		publish("create",bodyToMap,readObject,structure);
 		Object save = structure.getJpaRepository().saveAndFlush(readObject);
 		BeanWrapperImpl saveImpl = new BeanWrapperImpl(save);
 		Object savedUUID = saveImpl.getPropertyValue("uuid");
@@ -67,8 +68,6 @@ public class PostService extends BaseService {
 		httpPostOkResponse.setUuid(savedUUID.toString());
 		return applyPostInterceptor(requestPath, httpPostOkResponse, context);
 	}
-
-
 
 	@Transactional(readOnly = false)
 	public Object create(String resource, String resourceId, String subResource, String body) {
@@ -79,18 +78,17 @@ public class PostService extends BaseService {
 		Object owner;
 		Optional ownerOptional = structure.getJpaRepository().findById(resourceId);
 		if (!ownerOptional.isPresent()) {
-			throw new NotFound404Exception(resource+":"+resourceId);
+			throw new NotFound404Exception(resource + ":" + resourceId);
 		} else {
 			owner = ownerOptional.get();
 		}
 		String requestPath = "/" + resource + "/" + resourceId + "/" + subResource;
 		applyPreInterceptor(requestPath, bodyToMap, owner, context);
-	
-		publish("link",bodyToMap,owner,structure);
+
+		publishEvent("link", bodyToMap, owner);
 
 		HTTPPostOkResponse httpPostOkResponse = subResourceCreate(structure, owner, subResource, bodyToMap);
-		
-		
+
 		return applyPostInterceptor(requestPath, httpPostOkResponse, context);
 	}
 
@@ -103,7 +101,7 @@ public class PostService extends BaseService {
 		long fetchCount = SmartQuery.fetchCount(resource,
 				"uuid=" + resourceId + "&" + subResource + ".uuid=" + subResourceId);
 		if (fetchCount == 0) {
-			throw new NotFound404Exception(subResource+":"+subResourceId);
+			throw new NotFound404Exception(subResource + ":" + subResourceId);
 		}
 		String requestPath = "/" + resource + "/" + resourceId + "/" + subResource + "/" + subResourceId + "/"
 				+ subsubResource;
@@ -112,14 +110,13 @@ public class PostService extends BaseService {
 		EntityStructure subStructure = SmartQuery.getStructure(subResourceName);
 		Optional ownerOptional = subStructure.getJpaRepository().findById(subResourceId);
 		Object owner = ownerOptional.get();
-		
+
 		applyPreInterceptor(requestPath, bodyToMap, owner, context);
-		
-		publish("link",bodyToMap,owner,subStructure);
-		
+
+		publishEvent("link", bodyToMap, owner);
+
 		HTTPPostOkResponse httpPostOkResponse = subResourceCreate(subStructure, owner, subsubResource, bodyToMap);
-		
-		
+
 		return applyPostInterceptor(requestPath, httpPostOkResponse, context);
 	}
 
@@ -132,7 +129,7 @@ public class PostService extends BaseService {
 		Object oldInstance;
 		Optional oldInstanceOptional = structure.getJpaRepository().findById(resourceId);
 		if (!oldInstanceOptional.isPresent()) {
-			throw new NotFound404Exception(resource+":"+resourceId);
+			throw new NotFound404Exception(resource + ":" + resourceId);
 		} else {
 			oldInstance = oldInstanceOptional.get();
 		}
@@ -140,9 +137,9 @@ public class PostService extends BaseService {
 		applyPreInterceptor(requestPath, bodyToMap, oldInstance, context);
 
 		Object newInstance = bodyValidation(structure, bodyToMap, oldInstance);
-		
+
 		Object saveAndFlush = structure.getJpaRepository().saveAndFlush(newInstance);
-		
+
 		HTTPPostOkResponse httpPostOkResponse = new HTTPPostOkResponse();
 		httpPostOkResponse.setUuid(resourceId);
 		return applyPostInterceptor(requestPath, httpPostOkResponse, context);
@@ -157,9 +154,10 @@ public class PostService extends BaseService {
 		long fetchCount = SmartQuery.fetchCount(resource,
 				"uuid=" + resourceId + "&" + subResource + ".uuid=" + subResourceId);
 		if (fetchCount == 0) {
-			throw new NotFound404Exception(subResource+":"+subResourceId);
+			throw new NotFound404Exception(subResource + ":" + subResourceId);
 		} else {
-			EntityStructure subResourceStructure = SmartQuery.getStructure(CommonUtils.subResourceName(resource, subResource));
+			EntityStructure subResourceStructure = SmartQuery
+					.getStructure(CommonUtils.subResourceName(resource, subResource));
 			Optional oldInstanceOptional = subResourceStructure.getJpaRepository().findById(subResourceId);
 			Object oldInstance = oldInstanceOptional.get();
 			String requestPath = "/" + resource + "/" + resourceId + "/" + subResource + "/" + subResourceId;
@@ -181,27 +179,31 @@ public class PostService extends BaseService {
 		String ownerId = ownerWrapper.getPropertyValue("uuid").toString();
 		ColumnStucture columnStucture = structure.getObjectFields().get(subResource);
 		EntityStructure targetEntityStructure = SmartQuery.getStructure(columnStucture.getTargetEntity());
-		ObjectMapper mapper = new ObjectMapper();
-		Object readObject = null;
-		try {
-			readObject = CommonUtils.mapToObject(bodyToMap, targetEntityStructure.getEntityClass());
-		} catch (IOException e) {
-			e.printStackTrace();
-			throw new JsonFormat406Exception("json转成对象错误");
-		}
-		BeanWrapperImpl wrapper = new BeanWrapperImpl(readObject);
-		Object bodyId = wrapper.getPropertyValue("uuid");
+
+		String bodyId = bodyToMap.get("uuid").toString();
 		ColumnJoinType joinType = columnStucture.getJoinType();
 
 		Object retUuid = null;
 
 		if (joinType.equals(ColumnJoinType.ONE_TO_ONE)) {
+			Object readObject;
 			Object existSubResourceObject = ownerWrapper.getPropertyValue(subResource);
 			if (existSubResourceObject != null) {
-				throw new ServerError500Exception(subResource+"子资源已经存在");
+				throw new ServerError500Exception(subResource + "子资源已经存在");
+			}
+			try {
+				publishEvent("create", bodyToMap, targetEntityStructure.getEntityClass().newInstance());
+			} catch (InstantiationException | IllegalAccessException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			try {
+				readObject = CommonUtils.mapToObject(bodyToMap, targetEntityStructure.getEntityClass());
+			} catch (IOException e) {
+				e.printStackTrace();
+				throw new JsonFormat406Exception("json转成对象错误");
 			}
 			Object bodyObject = withoutIdBodyValidationObject(targetEntityStructure, readObject);
-			publish("create",bodyToMap,bodyObject,targetEntityStructure);
 			Object save;
 			if (columnStucture.getMappedBy() != null) {
 				BeanWrapperImpl bodyObjectWrapper = new BeanWrapperImpl(bodyObject);
@@ -218,11 +220,22 @@ public class PostService extends BaseService {
 				structure.getJpaRepository().saveAndFlush(owner);
 
 			}
-			
-		} else if (joinType.equals(ColumnJoinType.ONE_TO_MANY)) {
 
+		} else if (joinType.equals(ColumnJoinType.ONE_TO_MANY)) {
+			Object readObject;
+			try {
+				publishEvent("create", bodyToMap, targetEntityStructure.getEntityClass().newInstance());
+			} catch (InstantiationException | IllegalAccessException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			try {
+				readObject = CommonUtils.mapToObject(bodyToMap, targetEntityStructure.getEntityClass());
+			} catch (IOException e) {
+				e.printStackTrace();
+				throw new JsonFormat406Exception("json转成对象错误");
+			}
 			Object bodyObject = withoutIdBodyValidationObject(targetEntityStructure, readObject);
-			publish("create",bodyToMap,bodyObject,targetEntityStructure);
 			BeanWrapperImpl bodyObjectWrapper = new BeanWrapperImpl(bodyObject);
 			bodyObjectWrapper.setPropertyValue(columnStucture.getMappedBy(), owner);
 			Object save = targetEntityStructure.getJpaRepository().saveAndFlush(bodyObject);
@@ -235,13 +248,13 @@ public class PostService extends BaseService {
 			}
 			Optional subResourceOptional = targetEntityStructure.getJpaRepository().findById(bodyId);
 			if (!subResourceOptional.isPresent()) {
-				throw new NotFound404Exception(targetEntityStructure.getName()+":"+bodyId);
+				throw new NotFound404Exception(targetEntityStructure.getName() + ":" + bodyId);
 			}
+			publishEvent("link", bodyToMap, subResourceOptional.get());
 
 			ownerWrapper.setPropertyValue(subResource, subResourceOptional.get());
 			Object save = structure.getJpaRepository().saveAndFlush(owner);
 			retUuid = bodyId;
-			publish("link",bodyToMap,subResourceOptional.get(),targetEntityStructure);
 
 		} else if (joinType.equals(ColumnJoinType.MANY_TO_MANY)) {
 			if (bodyId == null) {
@@ -249,10 +262,11 @@ public class PostService extends BaseService {
 			}
 			Optional subResourceOptional = targetEntityStructure.getJpaRepository().findById(bodyId);
 			if (!subResourceOptional.isPresent()) {
-				throw new NotFound404Exception(targetEntityStructure.getName()+":"+bodyId);
+				throw new NotFound404Exception(targetEntityStructure.getName() + ":" + bodyId);
 			}
 			Object newSubResource = subResourceOptional.get();
-			
+			publishEvent("link", bodyToMap, newSubResource);
+
 			if (columnStucture.getMappedBy() != null) {
 				BeanWrapperImpl newSubResourceWrapper = new BeanWrapperImpl(newSubResource);
 				Object propertyValue = newSubResourceWrapper.getPropertyValue(columnStucture.getMappedBy());
@@ -264,7 +278,6 @@ public class PostService extends BaseService {
 				Object saveAndFlush = structure.getJpaRepository().saveAndFlush(owner);
 			}
 			retUuid = bodyId;
-			publish("link",bodyToMap,newSubResource,targetEntityStructure);
 		}
 		httpPostOkResponse.setUuid(retUuid.toString());
 		return httpPostOkResponse;
@@ -290,21 +303,21 @@ public class PostService extends BaseService {
 
 		try {
 			Object readObject = CommonUtils.mapToObject(bodyToMap, structure.getEntityClass());
-			return withoutIdBodyValidationObject(structure,readObject);
+			return withoutIdBodyValidationObject(structure, readObject);
 		} catch (IOException e) {
 			e.printStackTrace();
 			throw new JsonFormat406Exception("json转成对象错误");
 		}
 	}
+
 	private Object bodyValidation(EntityStructure structure, Map<String, Object> body, Object old) {
 		try {
-			
+
 			BeanWrapperImpl beanWrapperImpl = new BeanWrapperImpl(old);
 			String uuid = beanWrapperImpl.getPropertyValue("uuid").toString();
 			body.put("uuid", uuid);
+			publishEvent("update", body, old);
 			Object readObject = CommonUtils.mapToObject(body, structure.getEntityClass());
-			publish("update",body,readObject,structure);
-			
 			CommonUtils.copyPropertiesIgnoreNull(readObject, old);
 			Map<String, String> validate = CommonUtils.validate(old);
 			if (!validate.isEmpty()) {
@@ -338,7 +351,7 @@ public class PostService extends BaseService {
 					}
 				}
 				if (matched && !interceptor.preHandle(requestPath, body, ownerInstance, context)) {
-					throw new AccessDeny403Exception("数据被拦截器"+interceptor.name()+"拦截");
+					throw new AccessDeny403Exception("数据被拦截器" + interceptor.name() + "拦截");
 				}
 			}
 		}
@@ -371,7 +384,7 @@ public class PostService extends BaseService {
 		return httpPostOkResponse;
 
 	}
-	
+
 	private Map<String, Object> bodyToMap(String body) {
 		Map<String, Object> bodyToMap = null;
 		try {
@@ -381,14 +394,6 @@ public class PostService extends BaseService {
 			throw new JsonFormat406Exception("json解析错误");
 		}
 		return bodyToMap;
-	}
-	
-	private void publish(String defaultEvent, Map<String, Object> bodyToMap, Object owner,  EntityStructure ownerStructure) {
-		if(bodyToMap!=null && bodyToMap.containsKey("event")) {
-			defaultEvent = bodyToMap.get("event").toString();
-		}
-		 applicationContext.publishEvent(new RestfulEvent(defaultEvent,owner,ownerStructure));
-	
 	}
 
 }

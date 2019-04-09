@@ -21,11 +21,29 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.liyang.jpa.restful.core.exception.NotFound404Exception;
+import com.liyang.jpa.restful.core.service.CheckService;
 import com.liyang.jpa.smart.query.db.SmartQuery;
 import com.liyang.jpa.smart.query.db.structure.ColumnStucture;
 import com.liyang.jpa.smart.query.db.structure.EntityStructure;
+import com.liyang.jpa.smart.query.exception.QueryException;
 
 public class CommonUtils {
+	
+	public static EntityStructureEx getStructure(String name) {
+		if (CheckService.nameToStructure.containsKey(name)) {
+			return CheckService.nameToStructure.get(name);
+		} else {
+			throw new QueryException("没有这个实体:" + name);
+		}
+	}
+
+	public static EntityStructureEx getStructure(Class<?> clz) {
+		if (CheckService.classToStructure.containsKey(clz)) {
+			return CheckService.classToStructure.get(clz);
+		} else {
+			throw new QueryException("没有这个实体:" + clz.getSimpleName());
+		}
+	}
 
 	public static String subResourceName(String resource, String subResource) {
 		EntityStructure structure = SmartQuery.getStructure(resource);

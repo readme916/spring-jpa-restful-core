@@ -1,8 +1,9 @@
-package com.liyang.jpa.restful.core.listener;
+package com.liyang.jpa.restful.core.event;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.springframework.beans.BeanWrapper;
@@ -17,44 +18,45 @@ import org.springframework.util.ReflectionUtils;
 import com.liyang.jpa.restful.core.annotation.AllowCondition;
 import com.liyang.jpa.restful.core.annotation.AllowFields;
 import com.liyang.jpa.restful.core.annotation.ForbidFields;
-import com.liyang.jpa.restful.core.event.RestfulEvent;
+import com.liyang.jpa.restful.core.exception.AccessDeny403Exception;
 import com.liyang.jpa.restful.core.exception.Business503Exception;
 import com.liyang.jpa.restful.core.exception.JpaRestfulException;
 import com.liyang.jpa.restful.core.exception.ServerError500Exception;
 import com.liyang.jpa.restful.core.exception.Validator422Exception;
+import com.liyang.jpa.restful.core.utils.EntityStructureEx;
 import com.liyang.jpa.restful.core.utils.SpelContext;
+import com.liyang.jpa.smart.query.db.SmartQuery;
 
-public abstract class RestfulEventListener<T> implements ApplicationListener<RestfulEvent> {
+public abstract class EventManager<T>{
 
-	@Override
-	public void onApplicationEvent(RestfulEvent event) {
-		Class<?> entityClass = event.getEntityStructure().getEntityClass();
-		Class<?> resolve = ResolvableType.forClass(this.getClass()).as(RestfulEventListener.class).getGeneric(0)
+	public void dispatch(String name,  Map<String, Object> bodyToMap, Object oldInstance) {
+		
+		Class<?> resolve = ResolvableType.forClass(this.getClass()).as(EventManager.class).getGeneric(0)
 				.resolve();
-		if (resolve.equals(entityClass)) {
-			String upperCase = event.getEvent().substring(0, 1).toUpperCase();
-			String on = "on" + upperCase + event.getEvent().substring(1);
-			Method findMethod = ReflectionUtils.findMethod(this.getClass(), on, entityClass);
+		
+			String upperCase = name.substring(0, 1).toUpperCase();
+			String on = "on" + upperCase + name.substring(1);
+			Method findMethod = ReflectionUtils.findMethod(this.getClass(), on, Map.class,resolve);
+			
 			if (findMethod != null) {
 
 				AllowFields allowAnnotation = findMethod.getAnnotation(AllowFields.class);
 				if (allowAnnotation != null) {
-					allowField(event.getSource(), allowAnnotation.value());
+					allowField(bodyToMap, allowAnnotation.value());
 				} else {
 					ForbidFields forbidAnnotation = findMethod.getAnnotation(ForbidFields.class);
 					if (forbidAnnotation != null) {
-						forbidField(event.getSource(), forbidAnnotation.value());
+						forbidField(bodyToMap, forbidAnnotation.value());
 					}
 				}
 
 				AllowCondition allowCondition = findMethod.getAnnotation(AllowCondition.class);
 				if (allowCondition != null) {
-					allowCondition(event.getSource(), allowCondition.value());
+					allowCondition(oldInstance, allowCondition.value());
 				}
 				
-				
 				try {
-					findMethod.invoke(this, event.getSource());
+					findMethod.invoke(this,bodyToMap, oldInstance);
 				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 					Throwable cause = e.getCause();
 					if (cause instanceof JpaRestfulException) {
@@ -65,54 +67,47 @@ public abstract class RestfulEventListener<T> implements ApplicationListener<Res
 					}
 				}
 			}else {
-				throw new ServerError500Exception("不支持"+event.getEvent()+"事件");
+				throw new ServerError500Exception("不支持"+name+"事件");
 			}
-		}
+		
 	}
 
 	private void allowCondition(Object source, String condition) {
+		if(source==null) {
+			return;
+		}
 		SpelContext spelContext = new SpelContext(source);
 		ExpressionParser parser = new SpelExpressionParser();
 		Boolean ret = parser.parseExpression(condition, new TemplateParserContext())
 				.getValue(spelContext, Boolean.class);
 		if(!ret) {
-			throw new Business503Exception(1321,"非法操作",condition);
+			Class<? extends Object> class1 = source.getClass();
+			String name = SmartQuery.getStructure(class1).getName();
+			throw new AccessDeny403Exception(name + " 非法操作, " + condition);
 		}
 		
 	}
 
-	private void forbidField(Object obj, String[] filterField) {
-		final BeanWrapper src = new BeanWrapperImpl(obj);
-		java.beans.PropertyDescriptor[] pds = src.getPropertyDescriptors();
-		Set<String> filter = new HashSet<String>();
+	private void forbidField(Map<String, Object> bodyToMap, String[] filterField) {
+		
+		Set<String> keySet = bodyToMap.keySet();
 		for (String str : filterField) {
-			filter.add(str);
-		}
-		for (java.beans.PropertyDescriptor pd : pds) {
-			Object srcValue = src.getPropertyValue(pd.getName());
-			if (srcValue!=null && filter.contains(pd.getName())) {
-				throw new Validator422Exception("非法字段"+ pd.getName());
-			} else {
-				continue;
+			if(keySet.contains(str)) {
+				throw new AccessDeny403Exception("非法字段"+ str);
 			}
 		}
 	}
 
-	private void allowField(Object obj, String[] allowField) {
-		final BeanWrapper src = new BeanWrapperImpl(obj);
-		java.beans.PropertyDescriptor[] pds = src.getPropertyDescriptors();
-		Set<String> allow = new HashSet<String>();
+	private void allowField(Map<String, Object> bodyToMap, String[] allowField) {
+		
+		Set<String> keySet = bodyToMap.keySet();
+		HashSet<String> allowSet = new HashSet();
+		allowSet.add("uuid");
 		for (String str : allowField) {
-			allow.add(str);
+			allowSet.add(str);
 		}
-		for (java.beans.PropertyDescriptor pd : pds) {
-			Object srcValue = src.getPropertyValue(pd.getName());
-			if (allow.contains(pd.getName()) || pd.getName().equals("class")||pd.getName().equals("uuid") || srcValue==null) {
-				continue;
-			} else {
-				src.setPropertyValue(pd.getName(), null);
-				throw new Validator422Exception("非法字段"+ pd.getName());
-			}
+		if(!allowSet.containsAll(keySet)) {
+			throw new AccessDeny403Exception("非法字段");
 		}
 	}
 }

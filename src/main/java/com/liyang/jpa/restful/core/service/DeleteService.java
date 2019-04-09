@@ -18,7 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.PathMatcher;
 
-import com.liyang.jpa.restful.core.event.RestfulEvent;
 import com.liyang.jpa.restful.core.exception.AccessDeny403Exception;
 import com.liyang.jpa.restful.core.exception.NotFound404Exception;
 import com.liyang.jpa.restful.core.interceptor.JpaRestfulDeleteInterceptor;
@@ -56,7 +55,7 @@ public class DeleteService extends BaseService {
 		}
 		String requestPath = "/" + resource + "/" + resourceId;
 		applyPreInterceptor(requestPath, oldInstance, context);
-		publish("delete",oldInstance,structure);
+		publishEvent("delete",null,oldInstance);
 		recursiveDelete(structure, oldInstance);
 
 		HTTPPostOkResponse httpPostOkResponse = new HTTPPostOkResponse();
@@ -88,8 +87,8 @@ public class DeleteService extends BaseService {
 			applyPreInterceptor(requestPath, subResourceObject, context);
 			
 			subDelete(structure, owner, subResource, subResourceStructure, subResourceObject);
-			publish("update",owner,structure);
-			publish("unlink",subResourceObject,subResourceStructure);
+			publishEvent("unlink",null,owner);
+			publishEvent("unlink",null,subResourceObject);
 			
 			HTTPPostOkResponse httpPostOkResponse = new HTTPPostOkResponse();
 			httpPostOkResponse.setUuid(subResourceId);
@@ -249,9 +248,5 @@ public class DeleteService extends BaseService {
 
 	}
 	
-	private void publish(String event , Object beforeDelete,  EntityStructure entityStructure) {
-		
-		 applicationContext.publishEvent(new RestfulEvent(event,beforeDelete,entityStructure));
-	
-	}
+
 }

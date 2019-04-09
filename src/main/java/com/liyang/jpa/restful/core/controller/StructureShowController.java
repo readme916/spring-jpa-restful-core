@@ -59,11 +59,11 @@ import com.liyang.jpa.restful.core.interceptor.JpaRestfulDeleteInterceptor;
 import com.liyang.jpa.restful.core.interceptor.JpaRestfulGetInterceptor;
 import com.liyang.jpa.restful.core.interceptor.JpaRestfulPostInterceptor;
 import com.liyang.jpa.restful.core.utils.CommonUtils;
+import com.liyang.jpa.restful.core.utils.EntityStructureEx.EntityEvent;
 import com.liyang.jpa.smart.query.db.SmartQuery;
 import com.liyang.jpa.smart.query.db.structure.ColumnJoinType;
 import com.liyang.jpa.smart.query.db.structure.ColumnStucture;
 import com.liyang.jpa.smart.query.db.structure.EntityStructure;
-import com.liyang.jpa.smart.query.db.structure.EntityStructure.EntityEvent;
 
 @Controller
 @RequestMapping("${spring.jpa.restful.structure-path}")
@@ -152,7 +152,7 @@ public class StructureShowController extends DefaultExceptionHandler {
 		fullResource.setMethods(Arrays.asList(new MethodDescription[] { getDescription, postDescription }));
 		fullResource
 				.setInterceptors(_interceptorParse(fullResource.getResource().getResourceUri(), true, false, request));
-		fullResource.setEvents(SmartQuery.getStructure(resource).getEvents());
+		fullResource.setEvents(CommonUtils.getStructure(resource).getEvents());
 		Field[] declaredFields = entityClass.getDeclaredFields();
 		fillFields(declaredFields, fullResource, getPath(request) + "/" + resource,
 				getStructurePath(request) + "/" + resource, true);
@@ -202,7 +202,7 @@ public class StructureShowController extends DefaultExceptionHandler {
 		fullResource.setResource(resourceUrl);
 		fullResource
 				.setInterceptors(_interceptorParse(fullResource.getResource().getResourceUri(), true, true, request));
-		fullResource.setEvents(SmartQuery.getStructure(resource).getEvents());
+		fullResource.setEvents(CommonUtils.getStructure(resource).getEvents());
 
 		fillFields(declaredFields, fullResource, getPath(request) + "/" + resource,
 				getStructurePath(request) + "/" + resource, true);
@@ -243,7 +243,7 @@ public class StructureShowController extends DefaultExceptionHandler {
 		resourceUrl.setStructureUri(getStructurePath(request) + "/" + resource + "/{id}/" + subResource);
 		fullResource.setResource(resourceUrl);
 		fullResource.setTitle(subResource + " - 桥接资源（列表）");
-		fullResource.setEvents(SmartQuery.getStructure(entityClass).getEvents());
+		fullResource.setEvents(CommonUtils.getStructure(entityClass).getEvents());
 		ArrayList<MethodDescription> methods = new ArrayList<MethodDescription>();
 		if (parentStructure) {
 			MethodDescription getDescription = new MethodDescription();
@@ -308,7 +308,7 @@ public class StructureShowController extends DefaultExceptionHandler {
 		fullResource.setResource(resourceUrl);
 
 		fullResource.setTitle(subResource + " - 桥接资源（对象）");
-		fullResource.setEvents(SmartQuery.getStructure(entityClass).getEvents());
+		fullResource.setEvents(CommonUtils.getStructure(entityClass).getEvents());
 		ArrayList<MethodDescription> methods = new ArrayList<MethodDescription>();
 		MethodDescription getDescription = new MethodDescription();
 		getDescription.setMethod("GET");
@@ -355,7 +355,7 @@ public class StructureShowController extends DefaultExceptionHandler {
 		FullResource fullResource = new FullResource();
 
 		EntityStructure structure = SmartQuery.getStructure(entityClass);
-		fullResource.setEvents(SmartQuery.getStructure(entityClass).getEvents());
+		fullResource.setEvents(CommonUtils.getStructure(entityClass).getEvents());
 		ResourceUrl resourceUrl = new ResourceUrl();
 		resourceUrl
 				.setResourceUri(getPath(request) + "/" + resource + "/{id}/" + subResource + "/{id}/" + subsubResource);
