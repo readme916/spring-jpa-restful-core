@@ -1,6 +1,7 @@
 package com.liyang.jpa.restful.core.utils;
 
 import java.util.HashSet;
+import java.util.Set;
 
 import com.liyang.jpa.restful.core.event.EventManager;
 import com.liyang.jpa.smart.query.db.structure.EntityStructure;
@@ -28,21 +29,21 @@ public class EntityStructureEx extends EntityStructure {
 	}
 
 	public static class EntityEvent{
-		private HashSet<String> fields;
+		private Set<String> fields;
 		private String condition;
 		private String name;
-		private HashSet<String> roles;
+		private Set<String> roles;
 		
-		public HashSet<String> getRoles() {
+		public Set<String> getRoles() {
 			return roles;
 		}
-		public void setRoles(HashSet<String> roles) {
+		public void setRoles(Set<String> roles) {
 			this.roles = roles;
 		}
-		public HashSet<String> getFields() {
+		public Set<String> getFields() {
 			return fields;
 		}
-		public void setFields(HashSet<String> fields) {
+		public void setFields(Set<String> fields) {
 			this.fields = fields;
 		}
 		public String getCondition() {

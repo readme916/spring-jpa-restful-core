@@ -29,6 +29,17 @@ import com.liyang.jpa.smart.query.exception.QueryException;
 
 public class CommonUtils {
 	
+	
+	public static Set<String> filterAutoFields(Set<String> fields){
+		HashSet<String> hashSet = new HashSet<String>();
+		for (String string : fields) {
+			if(!string.equals("createdAt") && !string.equals("createdBy") && !string.equals("modifiedAt") && !string.equals("modifiedBy")&& !string.equals("uuid")) {
+				hashSet.add(string);
+			}
+		}
+		return hashSet;
+	}
+	
 	public static EntityStructureEx getStructure(String name) {
 		if (CheckService.nameToStructure.containsKey(name)) {
 			return CheckService.nameToStructure.get(name);

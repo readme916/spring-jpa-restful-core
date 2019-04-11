@@ -91,20 +91,13 @@ public class CheckService implements ApplicationContextAware,InitializingBean  {
 			Method[] declaredMethods = manager.getClass().getDeclaredMethods();
 			for (Method method : declaredMethods) {
 				if(method.getName().startsWith("on")) {
-					
 					EntityEvent entityEvent = new EntityEvent();
-					
 					String eventName = method.getName().substring(2);
 					eventName = eventName.substring(0, 1).toLowerCase() + eventName.substring(1);
 					entityEvent.setName(eventName);
 					
 					HashSet<String> hashSet = new HashSet<String>();
-					hashSet.addAll(structure.getSimpleFields().keySet());
-					hashSet.remove("createdBy");
-					hashSet.remove("createdAt");
-					hashSet.remove("modifiedAt");
-					hashSet.remove("modifiedBy");
-					
+					hashSet.addAll(CommonUtils.filterAutoFields(structure.getSimpleFields().keySet()));
 					AllowFields allowAnnotation = method.getAnnotation(AllowFields.class);
 					if (allowAnnotation != null) {
 						entityEvent.setFields(new HashSet<String>(Arrays.asList(allowAnnotation.value())));

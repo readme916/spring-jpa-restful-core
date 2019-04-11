@@ -71,21 +71,29 @@ public abstract class EventManager<T>{
 			}
 		
 	}
+	
 
 	private void allowCondition(Object source, String condition) {
 		if(source==null) {
 			return;
 		}
-		SpelContext spelContext = new SpelContext(source);
-		ExpressionParser parser = new SpelExpressionParser();
-		Boolean ret = parser.parseExpression(condition, new TemplateParserContext())
-				.getValue(spelContext, Boolean.class);
-		if(!ret) {
+		boolean _allowCondition = _allowCondition(source, condition);
+		if(!_allowCondition) {
 			Class<? extends Object> class1 = source.getClass();
 			String name = SmartQuery.getStructure(class1).getName();
 			throw new AccessDeny403Exception(name + " 非法操作, " + condition);
 		}
 		
+	}
+	
+	public boolean _allowCondition(Object source, String condition) {
+		if(condition==null || "".equals(condition)) {
+			return true;
+		}
+		SpelContext spelContext = new SpelContext(source);
+		ExpressionParser parser = new SpelExpressionParser();
+		return parser.parseExpression(condition, new TemplateParserContext())
+				.getValue(spelContext, Boolean.class);
 	}
 
 	private void forbidField(Map<String, Object> bodyToMap, String[] filterField) {
