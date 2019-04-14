@@ -1,4 +1,4 @@
-package com.liyang.jpa.restful.core.annotation;
+package com.liyang.jpa.restful.core.annotation.display;
 
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
@@ -8,13 +8,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 @Retention(RUNTIME)
-@Target(ElementType.METHOD)
+@Target(ElementType.TYPE)
 @Inherited
-public @interface ListDisplay {
-
-	boolean display() default true;
-	String nickname();
-	String targetObjectField();
-	int order();
-
+public @interface EntityLabel {
+	String value();
 }

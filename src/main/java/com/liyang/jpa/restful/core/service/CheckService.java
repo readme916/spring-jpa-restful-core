@@ -19,10 +19,10 @@ import org.springframework.core.ResolvableType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 
-import com.liyang.jpa.restful.core.annotation.AllowCondition;
-import com.liyang.jpa.restful.core.annotation.AllowFields;
-import com.liyang.jpa.restful.core.annotation.ForbidFields;
 import com.liyang.jpa.restful.core.annotation.JpaRestfulResource;
+import com.liyang.jpa.restful.core.annotation.event.AllowCondition;
+import com.liyang.jpa.restful.core.annotation.event.AllowFields;
+import com.liyang.jpa.restful.core.annotation.event.ForbidFields;
 import com.liyang.jpa.restful.core.domain.BaseEntity;
 import com.liyang.jpa.restful.core.event.EventManager;
 import com.liyang.jpa.restful.core.utils.CommonUtils;

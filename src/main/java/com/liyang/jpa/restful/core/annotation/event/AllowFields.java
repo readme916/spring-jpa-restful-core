@@ -1,4 +1,4 @@
-package com.liyang.jpa.restful.core.annotation;
+package com.liyang.jpa.restful.core.annotation.event;
 
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
@@ -10,10 +10,8 @@ import java.lang.annotation.Target;
 @Retention(RUNTIME)
 @Target(ElementType.METHOD)
 @Inherited
-public @interface ListFilter {
+public @interface AllowFields {
 
-	boolean display() default true;
-	String nickname();
-	int order();
+	String[] value();
 
 }

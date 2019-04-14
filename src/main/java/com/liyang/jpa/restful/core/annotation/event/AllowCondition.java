@@ -1,4 +1,4 @@
-package com.liyang.jpa.restful.core.annotation;
+package com.liyang.jpa.restful.core.annotation.event;
 
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
