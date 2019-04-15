@@ -10,8 +10,12 @@ import java.lang.annotation.Target;
 @Retention(RUNTIME)
 @Target(ElementType.FIELD)
 @Inherited
-public @interface DetailDisplay {
+public @interface FieldDisplay {
 	String label();
-	String field() default "";
-	int order();
+	String prop() default "";
+	int width() default 0;
+	Position[] position() default Position.DETAIL;
+	int order() default 0;
+	boolean file() default false;
+
 }

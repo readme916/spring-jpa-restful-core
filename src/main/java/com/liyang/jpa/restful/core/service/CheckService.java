@@ -20,6 +20,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 
 import com.liyang.jpa.restful.core.annotation.JpaRestfulResource;
+import com.liyang.jpa.restful.core.annotation.display.EventDisplay;
 import com.liyang.jpa.restful.core.annotation.event.AllowCondition;
 import com.liyang.jpa.restful.core.annotation.event.AllowFields;
 import com.liyang.jpa.restful.core.annotation.event.ForbidFields;
@@ -96,6 +97,9 @@ public class CheckService implements ApplicationContextAware,InitializingBean  {
 					eventName = eventName.substring(0, 1).toLowerCase() + eventName.substring(1);
 					entityEvent.setName(eventName);
 					
+					EventDisplay annotation = method.getAnnotation(EventDisplay.class);
+					entityEvent.setLabel(annotation.label());
+					entityEvent.setPosition(annotation.position());
 					HashSet<String> hashSet = new HashSet<String>();
 					hashSet.addAll(CommonUtils.filterAutoFields(structure.getSimpleFields().keySet()));
 					AllowFields allowAnnotation = method.getAnnotation(AllowFields.class);

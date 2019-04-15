@@ -14,9 +14,9 @@ import java.lang.annotation.Target;
 @Repeatable(value = ListFilters.class)
 public @interface ListFilter {
 	Relationship relationship() default Relationship.EQ;
-	String field() default "";
+	String prop() default "";
 	String label();
-	int order();
+	int order() default 0;
 	FormItem formItem() default FormItem.INPUT;
 	
 	public enum Relationship{

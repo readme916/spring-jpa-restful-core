@@ -8,11 +8,10 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 @Retention(RUNTIME)
-@Target(ElementType.FIELD)
+@Target(ElementType.METHOD)
 @Inherited
-public @interface ListDisplay {
+public @interface EventDisplay {
 	String label();
-	String field() default "";
-	int order();
-
+	Position[] position() default Position.DETAIL;
+	int order() default 0;
 }

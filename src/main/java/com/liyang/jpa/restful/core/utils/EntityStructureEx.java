@@ -3,6 +3,7 @@ package com.liyang.jpa.restful.core.utils;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.liyang.jpa.restful.core.annotation.display.Position;
 import com.liyang.jpa.restful.core.event.EventManager;
 import com.liyang.jpa.smart.query.db.structure.EntityStructure;
 
@@ -32,8 +33,22 @@ public class EntityStructureEx extends EntityStructure {
 		private Set<String> fields;
 		private String condition;
 		private String name;
+		private String label;
+		private Position[] position;
 		private Set<String> roles;
 		
+		public Position[] getPosition() {
+			return position;
+		}
+		public void setPosition(Position[] position) {
+			this.position = position;
+		}
+		public String getLabel() {
+			return label;
+		}
+		public void setLabel(String label) {
+			this.label = label;
+		}
 		public Set<String> getRoles() {
 			return roles;
 		}
