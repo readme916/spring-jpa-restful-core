@@ -214,7 +214,7 @@ public class DeleteService extends BaseService {
 					}
 				}
 				if (matched && !interceptor.preHandle(requestPath, ownerInstance, context)) {
-					throw new AccessDeny403Exception("被拦截器"+interceptor.name()+"拦截");
+					throw new AccessDeny403Exception("被拦截器["+interceptor.name()+"]拦截");
 				}
 			}
 		}

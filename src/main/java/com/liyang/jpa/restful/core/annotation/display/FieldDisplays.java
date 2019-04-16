@@ -8,16 +8,14 @@ import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
+import com.liyang.jpa.restful.core.annotation.display.ListFilter.FormItem;
+import com.liyang.jpa.restful.core.annotation.display.ListFilter.Relationship;
+
 @Retention(RUNTIME)
 @Target(ElementType.FIELD)
 @Inherited
-@Repeatable(value = FieldDisplays.class)
-public @interface FieldDisplay {
-	String label();
-	String prop() default "";
-	int width() default 0;
-	Position[] position() default Position.DETAIL;
-	int order() default 0;
-	boolean file() default false;
+public @interface FieldDisplays {
+
+	FieldDisplay[] value();
 
 }

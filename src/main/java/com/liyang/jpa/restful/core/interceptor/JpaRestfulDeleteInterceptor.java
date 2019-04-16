@@ -2,7 +2,6 @@ package com.liyang.jpa.restful.core.interceptor;
 
 import java.util.Map;
 
-import com.liyang.jpa.restful.core.response.HTTPListResponse;
 import com.liyang.jpa.restful.core.response.HTTPPostOkResponse;
 
 public interface JpaRestfulDeleteInterceptor extends JpaRestfulInterceptor  {
