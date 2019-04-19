@@ -34,7 +34,6 @@ public class EntityStructureEx extends EntityStructure {
 		private String condition;
 		private String name;
 		private String label;
-		private Position[] position;
 		private Set<String> roles;
 		private int order;
 		
@@ -44,12 +43,6 @@ public class EntityStructureEx extends EntityStructure {
 		}
 		public void setOrder(int order) {
 			this.order = order;
-		}
-		public Position[] getPosition() {
-			return position;
-		}
-		public void setPosition(Position[] position) {
-			this.position = position;
 		}
 		public String getLabel() {
 			return label;

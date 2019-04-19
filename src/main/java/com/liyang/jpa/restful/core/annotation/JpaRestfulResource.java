@@ -11,5 +11,5 @@ import java.lang.annotation.Target;
 @Target(TYPE)
 @Inherited
 public @interface JpaRestfulResource {
-
+	public String label();
 }

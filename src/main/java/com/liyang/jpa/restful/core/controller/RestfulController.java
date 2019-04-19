@@ -46,21 +46,21 @@ public class RestfulController extends DefaultExceptionHandler{
 		return getService.fetch(resource, resourceId, params);
 	}
 
-	// 桥接访问子资源，返回列表，必须是子资源，可附加子资源关联对象
+	// 桥接访问子资源，返回列表，可附加子资源关联对象
 	@RequestMapping(path = "{resource}/{resourceId}/{subResource}", method = RequestMethod.GET)
 	public Object get(@PathVariable String resource, @PathVariable String resourceId, @PathVariable String subResource,
 			@RequestParam(required = false) HashMap<String, String> params) {
 		return getService.fetch(resource, resourceId, subResource, params);
 	}
 
-	// 桥接访问子资源，返回单体，必须是子资源，可附加关联对象
+	// 桥接访问子资源，返回单体，可附加关联对象
 	@RequestMapping(path = "{resource}/{resourceId}/{subResource}/{subResourceId}", method = RequestMethod.GET)
 	public Object get(@PathVariable String resource, @PathVariable String resourceId, @PathVariable String subResource,
 			@PathVariable String subResourceId, @RequestParam(required = false) HashMap<String, String> params) {
 		return getService.fetch(resource, resourceId, subResource, subResourceId, params);
 	}
 
-	// 桥接访问孙子资源，返回列表，必须是孙子资源，可附加关联对象
+	// 桥接访问孙子资源，返回列表，可附加关联对象
 	@RequestMapping(path = "{resource}/{resourceId}/{subResource}/{subResourceId}/{subsubResource}", method = RequestMethod.GET)
 	public Object get(@PathVariable String resource, @PathVariable String resourceId, @PathVariable String subResource,
 			@PathVariable String subResourceId, @PathVariable String subsubResource,

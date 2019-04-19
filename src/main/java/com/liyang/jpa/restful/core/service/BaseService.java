@@ -39,12 +39,12 @@ public abstract class BaseService implements ApplicationContextAware {
 		if (!cls.isAnnotationPresent(JpaRestfulResource.class)) {
 			throw new NotFound404Exception("resource资源没有restful化的注解");
 		}
-		if (params != null) {
-			String fields = params.getOrDefault("fields", "");
-			if (fields.indexOf(".") != -1) {
-				throw new ServerError500Exception("fields中不允许复合对象");
-			}
-		}
+//		if (params != null) {
+//			String fields = params.getOrDefault("fields", "");
+//			if (fields.indexOf(".") != -1) {
+//				throw new ServerError500Exception("fields中不允许复合对象");
+//			}
+//		}
 	}
 
 
@@ -82,12 +82,12 @@ public abstract class BaseService implements ApplicationContextAware {
 		if (columnStucture == null) {
 			throw new NotFound404Exception(subResource + "子资源不存在");
 		}
-		if(columnStucture.getJoinType().equals(ColumnJoinType.MANY_TO_MANY)) {
-			throw new NotFound404Exception(subResource + "不允许MANY_TO_MANY查询方式");
-		}
-		if(columnStucture.getJoinType().equals(ColumnJoinType.MANY_TO_ONE)) {
-			throw new NotFound404Exception(subResource + "不允许MANY_TO_ONE查询方式");
-		}
+//		if(columnStucture.getJoinType().equals(ColumnJoinType.MANY_TO_MANY)) {
+//			throw new NotFound404Exception(subResource + "不允许MANY_TO_MANY查询方式");
+//		}
+//		if(columnStucture.getJoinType().equals(ColumnJoinType.MANY_TO_ONE)) {
+//			throw new NotFound404Exception(subResource + "不允许MANY_TO_ONE查询方式");
+//		}
 	}
 	
 	@Transactional(readOnly = false)

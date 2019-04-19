@@ -12,6 +12,5 @@ import java.lang.annotation.Target;
 @Inherited
 public @interface EventDisplay {
 	String label();
-	Position[] position() default Position.DETAIL;
 	int order() default 0;
 }

@@ -18,6 +18,7 @@ public @interface ListFilter {
 	String label();
 	int order() default 0;
 	FormItem formItem() default FormItem.INPUT;
+	String placeholder() default "";
 	
 	public enum Relationship{
 		EQ,GT,GTE,LT,LTE,LIKE,IN,NOT,OR
