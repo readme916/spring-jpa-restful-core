@@ -18,7 +18,6 @@ public @interface FieldDisplay {
 	int width() default 0;
 	Position[] position() default Position.DETAIL;
 	int order() default 0;
-	String listTemplate() default "";
-	String detailTemplate() default "";
+	boolean sortable() default false;
 
 }
