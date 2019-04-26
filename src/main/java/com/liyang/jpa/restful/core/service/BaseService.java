@@ -96,6 +96,8 @@ public abstract class BaseService implements ApplicationContextAware {
 			defaultEvent = bodyToMap.get("event").toString();
 		}
 		EventManager entityManager = CommonUtils.getStructure(oldInstance.getClass()).getEventManager();
-		entityManager.dispatch(defaultEvent,bodyToMap,oldInstance);
+		if(entityManager!=null) {
+			entityManager.dispatch(defaultEvent,bodyToMap,oldInstance);
+		}
 	}
 }

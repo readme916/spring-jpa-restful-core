@@ -24,9 +24,11 @@ public class JpaRestfulException extends RuntimeException{
 		this.timestamp = new Date();
 		this.error = error;
 		ServletRequestAttributes requestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-		HttpServletRequest request = requestAttributes.getRequest();
-		String pathInfo = request.getRequestURI();
-		this.path =  pathInfo;
+		if(requestAttributes!=null) {
+			HttpServletRequest request = requestAttributes.getRequest();
+			String pathInfo = request.getRequestURI();
+			this.path =  pathInfo;			
+		}
 		this.message = message;
 		this.detail = detail;
 	}
