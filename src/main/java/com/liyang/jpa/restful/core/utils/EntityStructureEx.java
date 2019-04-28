@@ -36,8 +36,15 @@ public class EntityStructureEx extends EntityStructure {
 		private String label;
 		private Set<String> roles;
 		private int order;
+		private Position[] position;
 		
 		
+		public Position[] getPosition() {
+			return position;
+		}
+		public void setPosition(Position[] position) {
+			this.position = position;
+		}
 		public int getOrder() {
 			return order;
 		}

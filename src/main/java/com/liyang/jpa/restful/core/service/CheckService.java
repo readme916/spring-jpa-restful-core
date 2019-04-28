@@ -98,6 +98,7 @@ public class CheckService implements ApplicationContextAware, InitializingBean {
 					if (annotation != null) {
 						entityEvent.setOrder(annotation.order());
 						entityEvent.setLabel(annotation.label());
+						entityEvent.setPosition(annotation.position());
 					}else {
 						throw new RuntimeException(structure.getName()+" 的事件 "+eventName+" 必须加上@EventDisplay注解");
 					}

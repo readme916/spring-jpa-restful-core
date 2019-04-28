@@ -81,6 +81,7 @@ public abstract class DefaultExceptionHandler {
 	@ResponseBody
 	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
 	public Object customerExceptionHandler5(ServerError500Exception ex) {
+		ex.printStackTrace();
 		Response response = new Response(ex);
 		return response;
 
