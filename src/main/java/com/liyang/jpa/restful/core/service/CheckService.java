@@ -25,12 +25,15 @@ import com.liyang.jpa.restful.core.annotation.event.AllowCondition;
 import com.liyang.jpa.restful.core.annotation.event.AllowFields;
 import com.liyang.jpa.restful.core.annotation.event.ForbidFields;
 import com.liyang.jpa.restful.core.domain.BaseEntity;
+import com.liyang.jpa.restful.core.domain.FileEntity;
+import com.liyang.jpa.restful.core.domain.ImageEntity;
 import com.liyang.jpa.restful.core.event.EventManager;
 import com.liyang.jpa.restful.core.utils.CommonUtils;
 import com.liyang.jpa.restful.core.utils.EntityStructureEx;
 import com.liyang.jpa.restful.core.utils.EntityStructureEx.EntityEvent;
 import com.liyang.jpa.smart.query.db.SmartQuery;
 import com.liyang.jpa.smart.query.db.structure.EntityStructure;
+import com.liyang.jpa.smart.query.db.structure.EntityType;
 import com.liyang.jpa.smart.query.exception.StructureException;
 
 @Service
@@ -71,6 +74,18 @@ public class CheckService implements ApplicationContextAware, InitializingBean {
 				if (!assignableFrom) {
 					throw new StructureException(entityClass.getSimpleName() + "没有实现BaseEntity接口");
 				}
+				boolean file = FileEntity.class.isAssignableFrom(entityClass);
+				if (file) {
+					classToStructure.get(entityClass).setType(EntityType.FILE);
+				} else {
+					boolean image = ImageEntity.class.isAssignableFrom(entityClass);
+					if (image) {
+						classToStructure.get(entityClass).setType(EntityType.IMAGE);
+					} else {
+						classToStructure.get(entityClass).setType(EntityType.NORMAL);
+					}
+				}
+
 			}
 		}
 		Map<String, EventManager> eventManagers = applicationContext.getBeansOfType(EventManager.class);
@@ -98,9 +113,9 @@ public class CheckService implements ApplicationContextAware, InitializingBean {
 					if (annotation != null) {
 						entityEvent.setOrder(annotation.order());
 						entityEvent.setLabel(annotation.label());
-						entityEvent.setPosition(annotation.position());
-					}else {
-						throw new RuntimeException(structure.getName()+" 的事件 "+eventName+" 必须加上@EventDisplay注解");
+						entityEvent.setDisplay(annotation.display());
+					} else {
+						throw new RuntimeException(structure.getName() + " 的事件 " + eventName + " 必须加上@EventDisplay注解");
 					}
 					HashSet<String> hashSet = new HashSet<String>();
 					hashSet.addAll(CommonUtils.filterAutoFields(structure.getSimpleFields().keySet()));

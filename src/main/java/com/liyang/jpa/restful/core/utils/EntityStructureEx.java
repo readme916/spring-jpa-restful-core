@@ -35,15 +35,14 @@ public class EntityStructureEx extends EntityStructure {
 		private String name;
 		private String label;
 		private Set<String> roles;
-		private int order;
-		private Position[] position;
+		private int order=100;
+		private boolean display;
 		
-		
-		public Position[] getPosition() {
-			return position;
+		public boolean isDisplay() {
+			return display;
 		}
-		public void setPosition(Position[] position) {
-			this.position = position;
+		public void setDisplay(boolean display) {
+			this.display = display;
 		}
 		public int getOrder() {
 			return order;

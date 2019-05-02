@@ -180,7 +180,7 @@ public class PostService extends BaseService {
 		ColumnStucture columnStucture = structure.getObjectFields().get(subResource);
 		EntityStructure targetEntityStructure = SmartQuery.getStructure(columnStucture.getTargetEntity());
 
-		String bodyId = bodyToMap.get("uuid").toString();
+		
 		ColumnJoinType joinType = columnStucture.getJoinType();
 
 		Object retUuid = null;
@@ -243,6 +243,7 @@ public class PostService extends BaseService {
 			retUuid = saveWrapper.getPropertyValue("uuid");
 
 		} else if (joinType.equals(ColumnJoinType.MANY_TO_ONE)) {
+			String bodyId = bodyToMap.get("uuid").toString();
 			if (bodyId == null) {
 				throw new ServerError500Exception("MANY_TO_ONE结构体只能关联，不允许创建");
 			}
@@ -257,6 +258,7 @@ public class PostService extends BaseService {
 			retUuid = bodyId;
 
 		} else if (joinType.equals(ColumnJoinType.MANY_TO_MANY)) {
+			String bodyId = bodyToMap.get("uuid").toString();
 			if (bodyId == null) {
 				throw new ServerError500Exception("MANY_TO_MANY结构体只能关联，不允许创建");
 			}

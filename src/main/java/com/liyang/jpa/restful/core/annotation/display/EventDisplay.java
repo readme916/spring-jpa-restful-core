@@ -13,5 +13,5 @@ import java.lang.annotation.Target;
 public @interface EventDisplay {
 	String label();
 	int order() default 0;
-	Position[] position() default Position.DETAIL;
+	boolean display() default true ;
 }

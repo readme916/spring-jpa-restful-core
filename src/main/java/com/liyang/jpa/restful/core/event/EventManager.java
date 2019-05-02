@@ -67,7 +67,7 @@ public abstract class EventManager<T>{
 					}
 				}
 			}else {
-				throw new ServerError500Exception("不支持"+name+"事件");
+//				throw new ServerError500Exception("不支持"+name+"事件");
 			}
 		
 	}
