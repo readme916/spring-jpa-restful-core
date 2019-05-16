@@ -57,10 +57,13 @@ public class PostService extends BaseService {
 		try {
 			Object old = structure.getEntityClass().newInstance();
 			publishEvent("create", bodyToMap, old);
-			Map<String, Object> oldMap = CommonUtils.objectToMap(old);
-			if (oldMap.get("uuid") != null) {
+			
+			BeanWrapperImpl oldImpl = new BeanWrapperImpl(old);
+			Object oldUUID = oldImpl.getPropertyValue("uuid");
+			
+			if (oldUUID != null) {
 				HTTPPostOkResponse httpPostOkResponse = new HTTPPostOkResponse();
-				httpPostOkResponse.setUuid(oldMap.get("uuid").toString());
+				httpPostOkResponse.setUuid(oldUUID.toString());
 				return applyPostInterceptor(requestPath, httpPostOkResponse, context);
 			} else {
 				Object readObject = withoutIdBodyValidationMap(structure, bodyToMap);
