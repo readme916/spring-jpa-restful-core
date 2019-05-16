@@ -55,18 +55,29 @@ public class PostService extends BaseService {
 
 		EntityStructure structure = SmartQuery.getStructure(resource);
 		try {
-			publishEvent("create", bodyToMap, structure.getEntityClass().newInstance());
+			Object old = structure.getEntityClass().newInstance();
+			publishEvent("create", bodyToMap, old);
+			Map<String, Object> oldMap = CommonUtils.objectToMap(old);
+			if (oldMap.get("uuid") != null) {
+				HTTPPostOkResponse httpPostOkResponse = new HTTPPostOkResponse();
+				httpPostOkResponse.setUuid(oldMap.get("uuid").toString());
+				return applyPostInterceptor(requestPath, httpPostOkResponse, context);
+			} else {
+				Object readObject = withoutIdBodyValidationMap(structure, bodyToMap);
+				Object save = structure.getJpaRepository().saveAndFlush(readObject);
+				BeanWrapperImpl saveImpl = new BeanWrapperImpl(save);
+				Object savedUUID = saveImpl.getPropertyValue("uuid");
+				HTTPPostOkResponse httpPostOkResponse = new HTTPPostOkResponse();
+				httpPostOkResponse.setUuid(savedUUID.toString());
+				return applyPostInterceptor(requestPath, httpPostOkResponse, context);
+			}
+
 		} catch (InstantiationException | IllegalAccessException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			return null;
 		}
-		Object readObject = withoutIdBodyValidationMap(structure, bodyToMap);
-		Object save = structure.getJpaRepository().saveAndFlush(readObject);
-		BeanWrapperImpl saveImpl = new BeanWrapperImpl(save);
-		Object savedUUID = saveImpl.getPropertyValue("uuid");
-		HTTPPostOkResponse httpPostOkResponse = new HTTPPostOkResponse();
-		httpPostOkResponse.setUuid(savedUUID.toString());
-		return applyPostInterceptor(requestPath, httpPostOkResponse, context);
+
 	}
 
 	@Transactional(readOnly = false)
@@ -180,7 +191,6 @@ public class PostService extends BaseService {
 		ColumnStucture columnStucture = structure.getObjectFields().get(subResource);
 		EntityStructure targetEntityStructure = SmartQuery.getStructure(columnStucture.getTargetEntity());
 
-		
 		ColumnJoinType joinType = columnStucture.getJoinType();
 
 		Object retUuid = null;
