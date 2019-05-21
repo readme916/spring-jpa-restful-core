@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 
@@ -333,7 +334,12 @@ public class PostService extends BaseService {
 			body.put("uuid", uuid);
 			publishEvent("update", body, old);
 			Object readObject = CommonUtils.mapToObject(body, structure.getEntityClass());
-			CommonUtils.copyPropertiesIgnoreNull(readObject, old);
+			Set<Entry<String,Object>> entrySet = body.entrySet();
+			for (Entry<String, Object> entry : entrySet) {
+				beanWrapperImpl.setPropertyValue(entry.getKey(), entry.getValue());
+			}
+			
+//			CommonUtils.copyPropertiesIgnoreNull(readObject, old);
 			Map<String, String> validate = CommonUtils.validate(old);
 			if (!validate.isEmpty()) {
 				throw new Validator422Exception(validate);
