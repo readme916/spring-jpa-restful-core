@@ -19,5 +19,5 @@ public @interface FieldDisplay {
 	Position[] position() default Position.DETAIL;
 	int order() default 0;
 	boolean sortable() default false;
-
+	boolean richEditor() default false;
 }
