@@ -10,9 +10,11 @@ import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.ResolvableType;
+import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.common.TemplateParserContext;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.util.ReflectionUtils;
 
 import com.liyang.jpa.restful.core.annotation.event.AllowCondition;
@@ -90,11 +92,22 @@ public abstract class EventManager<T>{
 		if(condition==null || "".equals(condition)) {
 			return true;
 		}
-		SpelContext spelContext = new SpelContext(source);
 		ExpressionParser parser = new SpelExpressionParser();
+		EvaluationContext context = new StandardEvaluationContext(); 
+		context.setVariable("old", source);
 		return parser.parseExpression(condition, new TemplateParserContext())
-				.getValue(spelContext, Boolean.class);
+				.getValue(context, Boolean.class);
 	}
+//	
+//	public boolean _allowCondition(Object source, String condition) {
+//		if(condition==null || "".equals(condition)) {
+//			return true;
+//		}
+//		SpelContext spelContext = new SpelContext(source);
+//		ExpressionParser parser = new SpelExpressionParser();
+//		return parser.parseExpression(condition, new TemplateParserContext())
+//				.getValue(spelContext, Boolean.class);
+//	}
 
 	private void forbidField(Map<String, Object> bodyToMap, String[] filterField) {
 		
