@@ -20,28 +20,20 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 public interface BaseEntity extends Serializable {
 
-	public String getUuid();
+	public Long getUuid();
 
-	public void setUuid(String uuid);
+	public void setUuid(Long uuid);
 
 	public String getEvent();
 
 	public void setEvent(String event);
 
-	public String getCreatedBy();
-
-	public void setCreatedBy(String createdBy);
-
-	public String getModifiedBy();
-
-	public void setModifiedBy(String modifiedBy);
-
 	public Date getCreatedAt();
 
 	public void setCreatedAt(Date createdAt);
 
-	public Date getModifiedAt();
+	public Date getUpdatedAt();
 
-	public void setModifiedAt(Date modifiedAt);
+	public void setUpdatedAt(Date updatedAt);
 
 }
