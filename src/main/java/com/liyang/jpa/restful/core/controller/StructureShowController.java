@@ -416,7 +416,7 @@ public class StructureShowController extends DefaultExceptionHandler {
 			if (field.getType() == String.class || field.getType() == Date.class
 					|| CommonUtils.isPackageClass(field.getType())) {
 				if (!field.getName().equals("createdBy") && !field.getName().equals("createdAt")
-						&& !field.getName().equals("modifiedAt") && !field.getName().equals("modifiedBy")) {
+						&& !field.getName().equals("modifiedAt") && !field.getName().equals("modifiedBy") && !field.getName().equals("version")) {
 					fullResource.getPostStructure().put(field.getName(), _defautlValue(field));
 				}
 			} else {
