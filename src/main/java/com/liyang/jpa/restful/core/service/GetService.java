@@ -45,13 +45,13 @@ public class GetService extends BaseService {
 	}
 
 	@Transactional(readOnly = true)
-	public Object fetch(String resource, String resourceId, HashMap<String, String> params) {
+	public Object fetch(String resource, Long resourceId, HashMap<String, String> params) {
 		checkResource(resource,params);
 		HashMap<Object, Object> context = new HashMap<>();
 		String requestPath = "/"+resource+"/" + resourceId;
 		applyPreInterceptor(requestPath, params, context);
 		
-		params.put("uuid", resourceId);
+		params.put("uuid", resourceId.toString());
 		params.putIfAbsent("fields", "*");
 		
 		Object fetchOne = SmartQuery.fetchOne(resource, params);
@@ -59,7 +59,7 @@ public class GetService extends BaseService {
 	}
 
 	@Transactional(readOnly = true)
-	public Object fetch(String resource, String resourceId, String subResource, HashMap<String, String> params) {
+	public Object fetch(String resource, Long resourceId, String subResource, HashMap<String, String> params) {
 		checkSubResource(resource,subResource,params);
 		HashMap<Object, Object> context = new HashMap<>();
 		String requestPath = "/"+resource+"/" + resourceId + "/" + subResource;
@@ -68,7 +68,7 @@ public class GetService extends BaseService {
 		String reversePrefix = reversePrefix(resource,subResource);
 		String subResourceName = CommonUtils.subResourceName(resource,subResource);
 		
-		params.put(reversePrefix+".uuid", resourceId);
+		params.put(reversePrefix+".uuid", resourceId.toString());
 		params.putIfAbsent("fields", "*");
 		
 		Object fetchList = SmartQuery.fetchList(subResourceName, params);
@@ -77,7 +77,7 @@ public class GetService extends BaseService {
 
 
 	@Transactional(readOnly = true)
-	public Object fetch(String resource, String resourceId, String subResource, String subResourceId,  HashMap<String, String> params) {
+	public Object fetch(String resource, Long resourceId, String subResource, Long subResourceId,  HashMap<String, String> params) {
 		checkSubResource(resource,subResource,params);
 		HashMap<Object, Object> context = new HashMap<>();
 		String requestPath = "/"+resource+"/" + resourceId + "/" + subResource + "/" + subResourceId;
@@ -86,8 +86,8 @@ public class GetService extends BaseService {
 		String reversePrefix = reversePrefix(resource,subResource);
 		String subResourceName = CommonUtils.subResourceName(resource,subResource);
 		
-		params.put("uuid", subResourceId);
-		params.put(reversePrefix+".uuid", resourceId);
+		params.put("uuid", subResourceId.toString());
+		params.put(reversePrefix+".uuid", resourceId.toString());
 		params.putIfAbsent("fields", "*");
 		
 		Object fetchOne = SmartQuery.fetchOne(subResourceName, params);
@@ -95,7 +95,7 @@ public class GetService extends BaseService {
 	}
 
 	@Transactional(readOnly = true)
-	public Object fetch(String resource, String resourceId, String subResource, String subResourceId,
+	public Object fetch(String resource, Long resourceId, String subResource, Long subResourceId,
 			String subsubResource, HashMap<String, String> params) {
 		checkSubsubResource(resource, subResource, subsubResource, params);
 		HashMap<Object, Object> context = new HashMap<>();
@@ -105,7 +105,7 @@ public class GetService extends BaseService {
 		String subResourceName = CommonUtils.subResourceName(resource,subResource);
 		String subsubResourceName = CommonUtils.subResourceName(subResourceName,subsubResource);
 		String reversePrefix = reversePrefix(subResourceName,subsubResource);
-		params.put(reversePrefix+".uuid", subResourceId);
+		params.put(reversePrefix+".uuid", subResourceId.toString());
 		params.putIfAbsent("fields", "*");
 
 		long fetchCount = SmartQuery.fetchCount(resource,

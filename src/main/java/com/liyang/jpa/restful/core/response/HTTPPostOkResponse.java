@@ -2,12 +2,12 @@ package com.liyang.jpa.restful.core.response;
 
 public class HTTPPostOkResponse {
 
-	private String uuid;
+	private Long uuid;
 	
-	public String getUuid() {
+	public Long getUuid() {
 		return uuid;
 	}
-	public void setUuid(String uuid) {
+	public void setUuid(Long uuid) {
 		this.uuid = uuid;
 	}
 	

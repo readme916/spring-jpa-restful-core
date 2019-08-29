@@ -42,7 +42,7 @@ public class DeleteService extends BaseService {
 	}
 
 	@Transactional(readOnly = false)
-	public Object delete(String resource, String resourceId) {
+	public Object delete(String resource, Long resourceId) {
 		checkResource(resource, null);
 		HashMap<String, Object> context = new HashMap<String, Object>();
 		EntityStructure structure = SmartQuery.getStructure(resource);
@@ -64,7 +64,7 @@ public class DeleteService extends BaseService {
 	}
 
 	@Transactional(readOnly = false)
-	public Object delete(String resource, String resourceId, String subResource, String subResourceId) {
+	public Object delete(String resource, Long resourceId, String subResource, Long subResourceId) {
 		checkResource(resource, null);
 		HashMap<String, Object> context = new HashMap<String, Object>();
 		EntityStructure structure = SmartQuery.getStructure(resource);

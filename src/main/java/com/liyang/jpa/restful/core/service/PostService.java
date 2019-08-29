@@ -64,7 +64,7 @@ public class PostService extends BaseService {
 			
 			if (oldUUID != null) {
 				HTTPPostOkResponse httpPostOkResponse = new HTTPPostOkResponse();
-				httpPostOkResponse.setUuid(oldUUID.toString());
+				httpPostOkResponse.setUuid(Long.valueOf(oldUUID.toString()));
 				return applyPostInterceptor(requestPath, httpPostOkResponse, context);
 			} else {
 				Object readObject = withoutIdBodyValidationMap(structure, bodyToMap);
@@ -72,7 +72,7 @@ public class PostService extends BaseService {
 				BeanWrapperImpl saveImpl = new BeanWrapperImpl(save);
 				Object savedUUID = saveImpl.getPropertyValue("uuid");
 				HTTPPostOkResponse httpPostOkResponse = new HTTPPostOkResponse();
-				httpPostOkResponse.setUuid(savedUUID.toString());
+				httpPostOkResponse.setUuid(Long.valueOf(savedUUID.toString()));
 				return applyPostInterceptor(requestPath, httpPostOkResponse, context);
 			}
 
@@ -85,7 +85,7 @@ public class PostService extends BaseService {
 	}
 
 	@Transactional(readOnly = false)
-	public Object create(String resource, String resourceId, String subResource, String body) {
+	public Object create(String resource, Long resourceId, String subResource, String body) {
 		checkResource(resource, null);
 		Map<String, Object> bodyToMap = bodyToMap(body);
 		HashMap<String, Object> context = new HashMap<String, Object>();
@@ -108,7 +108,7 @@ public class PostService extends BaseService {
 	}
 
 	@Transactional(readOnly = false)
-	public Object create(String resource, String resourceId, String subResource, String subResourceId,
+	public Object create(String resource, Long resourceId, String subResource, Long subResourceId,
 			String subsubResource, String body) {
 		checkSubResource(resource, subResource, null);
 		Map<String, Object> bodyToMap = bodyToMap(body);
@@ -136,7 +136,7 @@ public class PostService extends BaseService {
 	}
 
 	@Transactional(readOnly = false)
-	public Object update(String resource, String resourceId, String body) {
+	public Object update(String resource, Long resourceId, String body) {
 		checkResource(resource, null);
 		Map<String, Object> bodyToMap = bodyToMap(body);
 		HashMap<String, Object> context = new HashMap<String, Object>();
@@ -161,7 +161,7 @@ public class PostService extends BaseService {
 	}
 
 	@Transactional(readOnly = false)
-	public Object update(String resource, String resourceId, String subResource, String subResourceId, String body) {
+	public Object update(String resource, Long resourceId, String subResource, Long subResourceId, String body) {
 		checkSubResource(resource, subResource, null);
 		Map<String, Object> bodyToMap = bodyToMap(body);
 		HashMap<String, Object> context = new HashMap<String, Object>();
@@ -295,7 +295,7 @@ public class PostService extends BaseService {
 			}
 			retUuid = bodyId;
 		}
-		httpPostOkResponse.setUuid(retUuid.toString());
+		httpPostOkResponse.setUuid(Long.valueOf(retUuid.toString()));
 		return httpPostOkResponse;
 	}
 
