@@ -230,25 +230,25 @@ public class CommonUtils {
 
 	}
 
-	public static HashMap<String, Object> copyEntitySimpleProperitesToMap(EntityStructure structure, Object src) {
-		BeanWrapper srcWrapper = new BeanWrapperImpl(src);
-		if (srcWrapper.getPropertyValue("uuid") == null) {
-			return new HashMap<String, Object>();
-		}
-		HashMap<String, Object> hashMap = new HashMap<String, Object>();
-		Optional findById = structure.getJpaRepository().findById(srcWrapper.getPropertyValue("uuid").toString());
-		if (findById.isPresent()) {
-			Object entity = findById.get();
-			BeanWrapperImpl entityWrapperImpl = new BeanWrapperImpl(entity);
-			Set<String> keySet = structure.getSimpleFields().keySet();
-			for (String key : keySet) {
-				if (entityWrapperImpl.getPropertyValue(key) != null) {
-					hashMap.put(key, entityWrapperImpl.getPropertyValue(key));
-				}
-			}
-		}
-		return hashMap;
-	}
+//	public static HashMap<String, Object> copyEntitySimpleProperitesToMap(EntityStructure structure, Object src) {
+//		BeanWrapper srcWrapper = new BeanWrapperImpl(src);
+//		if (srcWrapper.getPropertyValue("uuid") == null) {
+//			return new HashMap<String, Object>();
+//		}
+//		HashMap<String, Object> hashMap = new HashMap<String, Object>();
+//		Optional findById = structure.getJpaRepository().findById(srcWrapper.getPropertyValue("uuid").toString());
+//		if (findById.isPresent()) {
+//			Object entity = findById.get();
+//			BeanWrapperImpl entityWrapperImpl = new BeanWrapperImpl(entity);
+//			Set<String> keySet = structure.getSimpleFields().keySet();
+//			for (String key : keySet) {
+//				if (entityWrapperImpl.getPropertyValue(key) != null) {
+//					hashMap.put(key, entityWrapperImpl.getPropertyValue(key));
+//				}
+//			}
+//		}
+//		return hashMap;
+//	}
 
 	public static boolean isPackageClassObject(Object obj) {
 		try {
