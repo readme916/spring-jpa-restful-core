@@ -45,6 +45,7 @@ public abstract class DefaultExceptionHandler {
 	@ResponseBody
 	@ResponseStatus(HttpStatus.FORBIDDEN)
 	public Object customerExceptionHandler1(AccessDeny403Exception ex) {
+		ex.printStackTrace();
 		Response response = new Response(ex);
 		return response;
 
@@ -54,6 +55,7 @@ public abstract class DefaultExceptionHandler {
 	@ResponseBody
 	@ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
 	public Object customerExceptionHandler2(Business503Exception ex) {
+		ex.printStackTrace();
 		Response response = new Response(ex);
 		return response;
 
@@ -63,6 +65,7 @@ public abstract class DefaultExceptionHandler {
 	@ResponseBody
 	@ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
 	public Object customerExceptionHandler3(JsonFormat406Exception ex) {
+		ex.printStackTrace();
 		Response response = new Response(ex);
 		return response;
 
@@ -72,6 +75,7 @@ public abstract class DefaultExceptionHandler {
 	@ResponseBody
 	@ResponseStatus(HttpStatus.NOT_FOUND)
 	public Object customerExceptionHandler4(NotFound404Exception ex) {
+		ex.printStackTrace();
 		Response response = new Response(ex);
 		return response;
 
@@ -91,6 +95,7 @@ public abstract class DefaultExceptionHandler {
 	@ResponseBody
 	@ResponseStatus(HttpStatus.REQUEST_TIMEOUT)
 	public Object customerExceptionHandler6(Timeout408Exception ex) {
+		ex.printStackTrace();
 		Response response = new Response(ex);
 		return response;
 
@@ -100,6 +105,7 @@ public abstract class DefaultExceptionHandler {
 	@ResponseBody
 	@ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
 	public Object customerExceptionHandler7(Validator422Exception ex) {
+		ex.printStackTrace();
 		Response response = new Response(ex);
 		return response;
 
@@ -136,6 +142,7 @@ public abstract class DefaultExceptionHandler {
 	@ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
 	public Object ExceptionHandler(DataIntegrityViolationException ex) {
 		Business503Exception business503Exception = new Business503Exception(503,"唯一索引不允许重复","");
+		ex.printStackTrace();
 		Response response = new Response(business503Exception);
 		return response;
 	}
