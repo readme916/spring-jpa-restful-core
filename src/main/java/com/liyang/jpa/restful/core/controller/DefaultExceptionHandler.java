@@ -29,6 +29,7 @@ import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import com.liyang.jpa.restful.core.exception.AccessDeny403Exception;
 import com.liyang.jpa.restful.core.exception.Business503Exception;
 import com.liyang.jpa.restful.core.exception.JpaRestfulException;
@@ -146,6 +147,22 @@ public abstract class DefaultExceptionHandler {
 		Response response = new Response(business503Exception);
 		return response;
 	}
+	
+	@ExceptionHandler(IllegalArgumentException.class)
+	@ResponseBody
+	@ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
+	public Object ExceptionHandler(IllegalArgumentException ex) {
+		Business503Exception business503Exception;
+		if( ex.getCause() instanceof UnrecognizedPropertyException) {
+			 business503Exception = new Business503Exception(503,((UnrecognizedPropertyException)ex.getCause()).getPropertyName()+" 字段不存在","");			
+		}else {
+			 business503Exception = new Business503Exception(503," 字段错误","");	
+		}
+		ex.printStackTrace();
+		Response response = new Response(business503Exception);
+		return response;
+	}
+	
 	@ExceptionHandler(Exception.class)
 	@ResponseBody
 	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
