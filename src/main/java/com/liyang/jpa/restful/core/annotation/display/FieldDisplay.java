@@ -14,6 +14,7 @@ import java.lang.annotation.Target;
 @Repeatable(value = FieldDisplays.class)
 public @interface FieldDisplay {
 	String label();
+	String tip() default "";
 	String prop() default "";
 	int width() default 0;
 	Position[] position() default Position.DETAIL;

@@ -98,16 +98,6 @@ public abstract class EventManager<T>{
 		return parser.parseExpression(condition, new TemplateParserContext())
 				.getValue(context, Boolean.class);
 	}
-//	
-//	public boolean _allowCondition(Object source, String condition) {
-//		if(condition==null || "".equals(condition)) {
-//			return true;
-//		}
-//		SpelContext spelContext = new SpelContext(source);
-//		ExpressionParser parser = new SpelExpressionParser();
-//		return parser.parseExpression(condition, new TemplateParserContext())
-//				.getValue(spelContext, Boolean.class);
-//	}
 
 	private void forbidField(Map<String, Object> bodyToMap, String[] filterField) {
 		
