@@ -426,11 +426,10 @@ public class StructureShowController extends DefaultExceptionHandler {
 				continue;
 			}
 			ObjectProperty objectProperty = new ObjectProperty();
-			if (field.getType() == String.class || field.getType() == Date.class|| field.getType().isEnum() || field.getType() == BigDecimal.class
-					|| CommonUtils.isPackageClass(field.getType())) {
-				if (!field.getName().equals("createdBy") && !field.getName().equals("createdAt") && !field.getName().equals("updatedAt")
-						&& !field.getName().equals("modifiedAt") && !field.getName().equals("modifiedBy")
-						&& !field.getName().equals("version")) {
+			if (field.getType() == String.class || field.getType() == Date.class || field.getType().isEnum()
+					|| field.getType() == BigDecimal.class || CommonUtils.isPackageClass(field.getType())) {
+				if (!field.getName().equals("createdAt") && !field.getName().equals("updatedAt")
+						&& !field.getName().equals("modifiedAt") && !field.getName().equals("version")) {
 					fullResource.getPostStructure().put(field.getName(), _defautlValue(field));
 				}
 			} else {
@@ -451,18 +450,18 @@ public class StructureShowController extends DefaultExceptionHandler {
 				objectProperty.setLabel(fieldDisplayAnnotation.label());
 				objectProperty.setTip(fieldDisplayAnnotation.tip());
 			}
-		
+
 			objectProperty.setName(field.getName());
-			objectProperty.setDataType(
-					field.getGenericType().getTypeName().replace("java.util.", "").replace("java.lang.", "").replace("com.utopia.tokensart.common.models.", ""));
+			objectProperty.setDataType(field.getGenericType().getTypeName().replace("java.util.", "")
+					.replace("java.lang.", "").replace("com.utopia.tokensart.common.models.", ""));
 			objectProperty.setConstraints(_constraintParse(field));
-			if(field.getType().isEnum()) {
+			if (field.getType().isEnum()) {
 				ArrayList<String> arrayList = new ArrayList<String>();
-				BaseEnum[] enumConstants = (BaseEnum[])field.getType().getEnumConstants();
+				BaseEnum[] enumConstants = (BaseEnum[]) field.getType().getEnumConstants();
 				for (BaseEnum enu : enumConstants) {
-					arrayList.add(enu.toString() +" ( "+ enu.getLabel()+" ) ");
+					arrayList.add(enu.toString() + " ( " + enu.getLabel() + " ) ");
 				}
-				
+
 				objectProperty.setConstraints(arrayList);
 			}
 			objectProperty.setRelationship(_relationshipParse(field));
