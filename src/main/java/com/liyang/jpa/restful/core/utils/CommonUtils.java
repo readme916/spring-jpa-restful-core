@@ -69,7 +69,9 @@ public class CommonUtils {
 	public static Set<String> filterAutoFields(Set<String> fields){
 		HashSet<String> hashSet = new HashSet<String>();
 		for (String string : fields) {
-			if(!string.equals("createdAt") && !string.equals("createdBy") && !string.equals("modifiedAt") && !string.equals("modifiedBy")&& !string.equals("uuid")) {
+			if(!string.equals("createdAt") && !string.equals("createdBy") 
+					&& !string.equals("modifiedAt") && !string.equals("modifiedBy")
+					&& !string.equals("uuid") &&!string.equals("version")  &&!string.equals("updatedAt")) {
 				hashSet.add(string);
 			}
 		}
