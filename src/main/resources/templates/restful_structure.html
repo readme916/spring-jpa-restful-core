@@ -215,17 +215,20 @@
 						<table class="table">
 							<thead>
 								<tr>
-									<th>名称</th>
+									<th>字段</th>
+									<th>名字</th>
 									<th>生命周期</th>
 									<th>数据类型</th>
 									<th>关系</th>
 									<th>地址</th>
 									<th>格式限制</th>
+									<th>解释</th>
 								</tr>
 							</thead>
 							<tbody th:if="${not #lists.isEmpty(resource.fields)}">
 								<tr th:each="m : ${resource.fields}">
 									<td th:text="${m.key}"></td>
+									<td th:text="${m.value.label}"></td>
 									<td th:text="${m.value.lifeCycle}"></td>
 									<td th:text="${m.value.dataType}"></td>
 									<td th:text="${m.value.relationship}"></td>
@@ -236,7 +239,7 @@
 											<li th:each="c : ${m.value.constraints}" th:text="${c}"></li>
 										</ul>
 									</td>
-
+									<td th:text="${m.value.tip}"></td>
 								</tr>
 							</tbody>
 						</table>

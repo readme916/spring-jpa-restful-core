@@ -1,9 +1,11 @@
 package com.liyang.jpa.restful.core.controller;
 
 import java.lang.reflect.Field;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -12,6 +14,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 import java.util.Set;
 
 import javax.annotation.PostConstruct;
@@ -54,6 +57,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.liyang.jpa.restful.core.annotation.JpaRestfulResource;
+import com.liyang.jpa.restful.core.annotation.display.FieldDisplay;
 import com.liyang.jpa.restful.core.controller.StructureShowController.ResourceUrl;
 import com.liyang.jpa.restful.core.interceptor.JpaRestfulDeleteInterceptor;
 import com.liyang.jpa.restful.core.interceptor.JpaRestfulGetInterceptor;
@@ -61,6 +65,7 @@ import com.liyang.jpa.restful.core.interceptor.JpaRestfulPostInterceptor;
 import com.liyang.jpa.restful.core.utils.CommonUtils;
 import com.liyang.jpa.restful.core.utils.EntityStructureEx.EntityEvent;
 import com.liyang.jpa.smart.query.db.SmartQuery;
+import com.liyang.jpa.smart.query.db.structure.BaseEnum;
 import com.liyang.jpa.smart.query.db.structure.ColumnJoinType;
 import com.liyang.jpa.smart.query.db.structure.ColumnStucture;
 import com.liyang.jpa.smart.query.db.structure.EntityStructure;
@@ -118,8 +123,16 @@ public class StructureShowController extends DefaultExceptionHandler {
 				arrayList.add(simpleResource);
 			}
 		}
+		List<SimpleResource> collect = arrayList.stream().sorted(new Comparator<SimpleResource>() {
 
-		model.addAttribute("resourceList", arrayList);
+			@Override
+			public int compare(SimpleResource o1, SimpleResource o2) {
+				// TODO Auto-generated method stub
+				return o1.getName().compareTo(o2.getName());
+			}
+		}).collect(Collectors.toList());
+
+		model.addAttribute("resourceList", collect);
 	}
 
 	@RequestMapping(path = "", method = RequestMethod.GET)
@@ -267,7 +280,7 @@ public class StructureShowController extends DefaultExceptionHandler {
 		fillFields(declaredFields, fullResource, getPath(request) + "/" + resource + "/{id}/" + subResource,
 				getStructurePath(request) + "/" + resource + "/{id}/" + subResource, parentStructure);
 		HashMap<String, Object> postStructure = fullResource.getPostStructure();
-		if(parentStructure) {
+		if (parentStructure) {
 			postStructure.remove("uuid");
 		}
 		ObjectMapper mapper = new ObjectMapper();
@@ -387,7 +400,7 @@ public class StructureShowController extends DefaultExceptionHandler {
 				getPath(request) + "/" + resource + "/{id}/" + subResource + "/{id}/" + subsubResource,
 				getStructurePath(request) + "/" + resource + "/{id}/" + subResource + "/{id}/" + subsubResource, false);
 		HashMap<String, Object> postStructure = fullResource.getPostStructure();
-		if(parentStructure) {
+		if (parentStructure) {
 			postStructure.remove("uuid");
 		}
 		ObjectMapper mapper = new ObjectMapper();
@@ -413,10 +426,11 @@ public class StructureShowController extends DefaultExceptionHandler {
 				continue;
 			}
 			ObjectProperty objectProperty = new ObjectProperty();
-			if (field.getType() == String.class || field.getType() == Date.class
+			if (field.getType() == String.class || field.getType() == Date.class|| field.getType().isEnum() || field.getType() == BigDecimal.class
 					|| CommonUtils.isPackageClass(field.getType())) {
-				if (!field.getName().equals("createdBy") && !field.getName().equals("createdAt")
-						&& !field.getName().equals("modifiedAt") && !field.getName().equals("modifiedBy") && !field.getName().equals("version")) {
+				if (!field.getName().equals("createdBy") && !field.getName().equals("createdAt") && !field.getName().equals("updatedAt")
+						&& !field.getName().equals("modifiedAt") && !field.getName().equals("modifiedBy")
+						&& !field.getName().equals("version")) {
 					fullResource.getPostStructure().put(field.getName(), _defautlValue(field));
 				}
 			} else {
@@ -431,10 +445,26 @@ public class StructureShowController extends DefaultExceptionHandler {
 			} else {
 				objectProperty.setLifeCycle(LifeCycle.PERSISTENT.desc);
 			}
+
+			FieldDisplay fieldDisplayAnnotation = field.getDeclaredAnnotation(FieldDisplay.class);
+			if (fieldDisplayAnnotation != null) {
+				objectProperty.setLabel(fieldDisplayAnnotation.label());
+				objectProperty.setTip(fieldDisplayAnnotation.tip());
+			}
+		
 			objectProperty.setName(field.getName());
 			objectProperty.setDataType(
-					field.getGenericType().getTypeName().replace("java.util.", "").replace("java.lang.", ""));
+					field.getGenericType().getTypeName().replace("java.util.", "").replace("java.lang.", "").replace("com.utopia.tokensart.common.models.", ""));
 			objectProperty.setConstraints(_constraintParse(field));
+			if(field.getType().isEnum()) {
+				ArrayList<String> arrayList = new ArrayList<String>();
+				BaseEnum[] enumConstants = (BaseEnum[])field.getType().getEnumConstants();
+				for (BaseEnum enu : enumConstants) {
+					arrayList.add(enu.toString() +" ( "+ enu.getLabel()+" ) ");
+				}
+				
+				objectProperty.setConstraints(arrayList);
+			}
 			objectProperty.setRelationship(_relationshipParse(field));
 			fullResource.getFields().put(field.getName(), objectProperty);
 
@@ -448,6 +478,8 @@ public class StructureShowController extends DefaultExceptionHandler {
 		} else if (field.getType() == Boolean.class) {
 			return false;
 		} else if (field.getType() == Character.class) {
+			return "";
+		} else if (field.getType().isEnum()) {
 			return "";
 		} else {
 			return 0;
@@ -721,6 +753,24 @@ public class StructureShowController extends DefaultExceptionHandler {
 		private String name;
 		private String relationship;
 		private ArrayList<String> constraints = new ArrayList();
+		private String label;
+		private String tip;
+
+		public String getLabel() {
+			return label;
+		}
+
+		public void setLabel(String label) {
+			this.label = label;
+		}
+
+		public String getTip() {
+			return tip;
+		}
+
+		public void setTip(String tip) {
+			this.tip = tip;
+		}
 
 		public String getStructureUri() {
 			return structureUri;
