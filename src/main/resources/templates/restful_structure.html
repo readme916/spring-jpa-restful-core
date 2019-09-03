@@ -238,19 +238,19 @@
 							</thead>
 							<tbody th:if="${not #lists.isEmpty(resource.fields)}">
 								<tr th:each="m : ${resource.fields}">
-									<td th:text="${m.key}" style="white-space:nowrap"></td>
-									<td th:text="${m.value.label}" style="white-space:nowrap"></td>
-									<td th:text="${m.value.lifeCycle}" style="white-space:nowrap"></td>
-									<td th:text="${m.value.dataType}" style="white-space:nowrap"></td>
-									<td th:text="${m.value.relationship}" style="white-space:nowrap"></td>
-									<td><a th:text="${m.value.resourceUri}"
-										th:href="@{${m.value.structureUri}}"> </a></td>
+									<td th:text="${m.name}" style="white-space:nowrap"></td>
+									<td th:text="${m.label}" style="white-space:nowrap"></td>
+									<td th:text="${m.lifeCycle}" style="white-space:nowrap"></td>
+									<td th:text="${m.dataType}" style="white-space:nowrap"></td>
+									<td th:text="${m.relationship}" style="white-space:nowrap"></td>
+									<td><a th:text="${m.resourceUri}"
+										th:href="@{${m.structureUri}}"> </a></td>
 									<td>
-										<ul th:if="${not #lists.isEmpty(m.value.constraints)}">
-											<li th:each="c : ${m.value.constraints}" th:text="${c}"></li>
+										<ul th:if="${not #lists.isEmpty(m.constraints)}">
+											<li th:each="c : ${m.constraints}" th:text="${c}"></li>
 										</ul>
 									</td>
-									<td th:text="${m.value.tip}"></td>
+									<td th:text="${m.tip}"></td>
 								</tr>
 							</tbody>
 						</table>

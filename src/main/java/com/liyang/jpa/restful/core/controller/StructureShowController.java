@@ -449,6 +449,7 @@ public class StructureShowController extends DefaultExceptionHandler {
 			if (fieldDisplayAnnotation != null) {
 				objectProperty.setLabel(fieldDisplayAnnotation.label());
 				objectProperty.setTip(fieldDisplayAnnotation.tip());
+				objectProperty.setOrder(fieldDisplayAnnotation.order());
 			}
 
 			objectProperty.setName(field.getName());
@@ -465,10 +466,21 @@ public class StructureShowController extends DefaultExceptionHandler {
 				objectProperty.setConstraints(arrayList);
 			}
 			objectProperty.setRelationship(_relationshipParse(field));
-			fullResource.getFields().put(field.getName(), objectProperty);
+			fullResource.getFields().add(objectProperty);
 
 		}
+		List<Object> collect = fullResource.getFields().stream().sorted(new Comparator<Object>() {
 
+			@Override
+			public int compare(Object o1, Object o2) {
+				// TODO Auto-generated method stub
+				return ((ObjectProperty)o1).order -  ((ObjectProperty)o2).order;
+			}
+			
+		}).collect(Collectors.toList());
+		
+		
+		fullResource.setFields(collect);
 	}
 
 	private Object _defautlValue(Field field) {
@@ -623,7 +635,7 @@ public class StructureShowController extends DefaultExceptionHandler {
 		private ArrayList<ResourceUrl> relativeResource = new ArrayList();
 		private ResourceUrl resource;
 		private HashMap<String, List<Interceptor>> interceptors = new HashMap();
-		private HashMap<String, Object> fields = new HashMap();
+		private List<Object> fields = new ArrayList<Object>();
 		private HashSet<EntityEvent> events = new HashSet();
 
 		public HashSet<EntityEvent> getEvents() {
@@ -666,11 +678,12 @@ public class StructureShowController extends DefaultExceptionHandler {
 			this.postStructure = postStructure;
 		}
 
-		public HashMap<String, Object> getFields() {
+	
+		public List<Object> getFields() {
 			return fields;
 		}
 
-		public void setFields(HashMap<String, Object> fields) {
+		public void setFields(List<Object> fields) {
 			this.fields = fields;
 		}
 
@@ -752,8 +765,17 @@ public class StructureShowController extends DefaultExceptionHandler {
 		private String name;
 		private String relationship;
 		private ArrayList<String> constraints = new ArrayList();
+		private int order;
 		private String label;
 		private String tip;
+
+		public int getOrder() {
+			return order;
+		}
+
+		public void setOrder(int order) {
+			this.order = order;
+		}
 
 		public String getLabel() {
 			return label;
