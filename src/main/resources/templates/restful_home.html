@@ -24,29 +24,42 @@
 
 </head>
 <body>
-
-	<div class="container">
+	<nav class="navbar navbar-default  navbar-fixed-top">
+		<div class="container-fluid">
+		  <!-- Brand and toggle get grouped for better mobile display -->
+		  <div class="navbar-header">
+			<a class="navbar-brand" href="/restDoc">Tokensart RestApi 文档</a>
+		  </div>
+		  <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+			<ul class="nav navbar-nav">
+			  <li class="active"><a href="/restDoc">接口规范</a></li>
+			  <li><a href="/restDoc/rest/account">接口资源</a></li>
+			 
+			</ul>
+		</div>
+		
+		</div><!-- /.container-fluid -->
+	  </nav>
+	  <br /><br /><br /><br />
+	<div class="container-fluid">
 
 		<div class="row">
-			<div class="col-lg-12">
+			<div class="col-lg-2">
 				<div class="panel panel-primary">
 					<div class="panel-heading">
-						<h3 class="panel-title">RESTFUL资源</h3>
+						<h3 class="panel-title">RESTFUL资源列表</h3>
 					</div>
 					<div class="panel-body">
 						<table class="table">
 							<thead>
 								<tr>
 									<th>资源名字</th>
-									<th>访问地址</th>
 									<th>详情</th>
 								</tr>
 							</thead>
 							<tbody th:if="${not #lists.isEmpty(resourceList)}">
 								<tr th:each="resource : ${resourceList}">
 									<td th:text="${resource.name}"></td>
-									<td><a th:text="${resource.resourceUri}"
-										th:href="@{${resource.resourceUri}}"></a></td>
 									<td><a th:text="查看详情"
 										th:href="@{${resource.structureUri}}"></a></td>
 								</tr>
@@ -54,6 +67,14 @@
 						</table>
 					</div>
 				</div>
+			</div>
+			<div class="col-lg-10">
+				<h1>RestAPI接口规范</h1>
+				<div>http://domain.com:20000/restDoc<br /><br /></div>
+				<h3>restAPI get 规范</h3>
+				<div>这里是文字<br /><br /><br /><br /></div>
+				<h3>restAPI post 规范</h3>
+				<div>这里是文字<br /><br /><br /><br /></div>
 			</div>
 		</div>
 	</div>
