@@ -1,46 +1,42 @@
 <!DOCTYPE HTML>
-<html xmlns="http://www.w3.org/1999/xhtml"
-	xmlns:th="http://www.thymeleaf.org">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+
 <head>
-<meta content="text/html;charset=UTF-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<!-- 最新版本的 Bootstrap 核心 CSS 文件 -->
-<link rel="stylesheet"
-	href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css"
-	integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
-	crossorigin="anonymous">
+	<meta content="text/html;charset=UTF-8" />
+	<meta name="viewport" content="width=device-width,initial-scale=1" />
+	<!-- 最新版本的 Bootstrap 核心 CSS 文件 -->
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css"
+		integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 
-<!-- 可选的 Bootstrap 主题文件（一般不用引入） -->
-<link rel="stylesheet"
-	href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap-theme.min.css"
-	integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp"
-	crossorigin="anonymous">
+	<!-- 可选的 Bootstrap 主题文件（一般不用引入） -->
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap-theme.min.css"
+		integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
 
-<!-- 最新的 Bootstrap 核心 JavaScript 文件 -->
-<script
-	src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.min.js"
-	integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
-	crossorigin="anonymous"></script>
+	<!-- 最新的 Bootstrap 核心 JavaScript 文件 -->
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.min.js"
+		integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+		crossorigin="anonymous"></script>
 
 </head>
+
 <body>
 	<nav class="navbar navbar-default  navbar-fixed-top">
 		<div class="container-fluid">
-		  <!-- Brand and toggle get grouped for better mobile display -->
-		  <div class="navbar-header">
-			<a class="navbar-brand" href="/restDoc">Tokensart RestApi 文档</a>
-		  </div>
-		  <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-			<ul class="nav navbar-nav">
-			  <li class="active"><a href="/restDoc">接口规范</a></li>
-			  <li><a href="/restDoc/rest/account">接口资源</a></li>
-			 
-			</ul>
-		</div>
-		
+			<!-- Brand and toggle get grouped for better mobile display -->
+			<div class="navbar-header">
+				<a class="navbar-brand" href="/restDoc">Tokensart RestApi 文档</a>
+			</div>
+			<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+				<ul class="nav navbar-nav">
+					<li class="active"><a href="/restDoc">接口规范</a></li>
+					<li><a href="/restDoc/rest/account">接口资源</a></li>
+
+				</ul>
+			</div>
+
 		</div><!-- /.container-fluid -->
-	  </nav>
-	  <br /><br /><br /><br />
+	</nav>
+	<br /><br /><br /><br />
 	<div class="container-fluid">
 
 		<div class="row">
@@ -60,8 +56,7 @@
 							<tbody th:if="${not #lists.isEmpty(resourceList)}">
 								<tr th:each="resource : ${resourceList}">
 									<td th:text="${resource.name}"></td>
-									<td><a th:text="查看详情"
-										th:href="@{${resource.structureUri}}"></a></td>
+									<td><a th:text="查看详情" th:href="@{${resource.structureUri}}"></a></td>
 								</tr>
 							</tbody>
 						</table>
@@ -71,12 +66,116 @@
 			<div class="col-lg-10">
 				<h1>RestAPI接口规范</h1>
 				<div>http://domain.com:20000/restDoc<br /><br /></div>
-				<h3>restAPI get 规范</h3>
-				<div>这里是文字<br /><br /><br /><br /></div>
-				<h3>restAPI post 规范</h3>
-				<div>这里是文字<br /><br /><br /><br /></div>
+				<div class="alert alert-success">关于restful的接口资源理解，请先百度。</div>
+				<div>
+					基本请求说明：<br />
+					<ul>
+						<li>
+							任何一个模型相关于一个资源，其多对一、一对多、多对多的关系子源，可以直接关联查询或修改
+						</li>
+						<li>
+							查询支持二级关联资源
+						</li>
+						<li>
+							查询条件，如fields等，请看如下说明
+						</li>
+					</ul>
+				</div>
+				<br />
+				<br />
+
+
+				<h3>RestAPI get 示例</h3>
+				<div>
+					<h4>
+						获取用户列表（返回是集合）
+					</h4>
+					<div>简单获取 http://userapi.domain.com/rest/user</div>
+					<div>分页获取 http://userapi.domain.com/rest/user?page=0&size=20</div>
+					<div>部分字段 http://……/rest/user?fields=username,password&page=0&size=20</div>
+					<div>获取关联资源 http://……/rest/user?fields=username,password,accounts,ownedOrg&page=0&size=20
+					</div>
+					<div>获取二级关联资源
+						http://……/rest/user?fields=username,password,accounts,accounts.accountTokens&page=0&size=20
+					</div>
+					<br />
+
+					<div>有条件获取
+						http://userapi.domain.com/rest/user?page=0&size=20&state[eq]=ENABLED&age[lte]=23&age[gte]=12&class[in]=3,4
+					</div>
+					<div class="alert alert-danger">
+						条件[]格式：eq为等于，lte小于等于，gte大于等于，lt小于，gt大于，in为包含于，not为不等于，like为字段包含，or（与其它条件形成并集结构）
+					</div>
+				</div>
+				<br />
+				<div>
+					<h4>
+						获取用户详情
+					</h4>
+					<div>简单获取 http://userapi.domain.com/rest/user/12345</div>
+					<div>部分字段 http://……/rest/user/1234?fields=username,password&page=0&size=20</div>
+					<div>获取关联资源
+						http://……/rest/user/1234?fields=username,password,accounts,ownedOrg&page=0&size=20
+					</div>
+					<div>获取二级关联资源
+						http://……/rest/user/125423543?fields=username,password,accounts,accounts.accountTokens&page=0&size=20
+					</div>
+					<br />
+
+				</div>
+				<div>
+					<h4>
+						直接获取用户的关联资源
+					</h4>
+					<div>简单获取 http://userapi.domain.com/rest/user/12345/accounts</div>
+					<div>获取关联资源 http://……/rest/user/1234/accounts?fields=name,accountType&page=0&size=20
+					</div>
+					<div>一对多，多对多，多对一等，都可以直接读，还可以读该资源(accounts)的二级资源 </div>
+					<br />
+
+				</div>
+
+				<br />
+				<br />
+				<h3>RestAPI post 示例</h3>
+				<div>
+					<h4>
+						修改用户信息
+					</h4>
+					<div>修改本模型 post http://......com/rest/user/1，{age:15,state:"DISABLED"}</div>
+					<br />
+
+					<div>创建一对一的关联模型 post http://......com/rest/user/1/userInfo,{balance:7}（无uuid）</div>
+					<div>修改一对一的关联模型 post http://......com/rest/user/1/userInfo，{school:"HBU",class:"7-1"}</div>
+					<div>删除一对一的关联 delete http://......com/rest/user/1/userInfo/1321235345</div>
+
+					<br />
+
+					<div>增加一对多的关联模型 post http://......com/rest/user/1/accounts,{balance:7}（无uuid）</div>
+					<div>修改一对多的关联模型 post http://......com/rest/user/1/accounts/13,{balance:7}</div>
+					<div>删除一对多的关联 delete http://......com/rest/user/1/accounts/13</div>
+
+					<br />
+
+					<div>增加多对一的关联 post http://......com/rest/user/1/class,{uuid:7,name:"123123"}</div>
+					<div>修改多对一的关联 post http://......com/rest/user/1/class,{uuid:7}</div>
+					<div>删除多对一的关联 delete http://......com/rest/user/1/class/13</div>
+
+					<br />
+
+					<div>增加一个关系多对多关联 post http://......com/rest/user/1/roles,{uuid:231231231}
+					</div>
+					<div>删除一个关系多对多关联 delete http://......com/rest/user/1/roles/231231231</div>
+
+				</div>
+				<br />
+
+
 			</div>
+
+
 		</div>
 	</div>
 </body>
+
 </html>
