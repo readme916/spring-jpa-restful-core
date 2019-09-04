@@ -116,8 +116,11 @@ public class StructureShowController extends DefaultExceptionHandler {
 		for (EntityStructure entityStructure : values) {
 			Class<?> cls = entityStructure.getEntityClass();
 			if (cls.isAnnotationPresent(JpaRestfulResource.class)) {
+				JpaRestfulResource annotation = cls.getAnnotation(JpaRestfulResource.class);
 				SimpleResource simpleResource = new SimpleResource();
 				simpleResource.setName(entityStructure.getName());
+				simpleResource.setLabel(annotation.label());
+				simpleResource.setTip(annotation.tip());
 				simpleResource.setResourceUri(getPath(request) + "/" + entityStructure.getName());
 				simpleResource.setStructureUri(getStructurePath(request) + "/" + entityStructure.getName());
 				arrayList.add(simpleResource);
@@ -155,6 +158,13 @@ public class StructureShowController extends DefaultExceptionHandler {
 		resourceUrl.setStructureUri(getStructurePath(request) + "/" + resource);
 		fullResource.setResource(resourceUrl);
 		fullResource.setTitle(resource + " - 主资源（列表）");
+		if (entityClass.isAnnotationPresent(JpaRestfulResource.class)) {
+			JpaRestfulResource annotation = entityClass.getAnnotation(JpaRestfulResource.class);
+			fullResource.setLabel(annotation.label());
+			fullResource.setTip(annotation.tip());
+		}
+		
+		
 		MethodDescription getDescription = new MethodDescription();
 		getDescription.setMethod("GET");
 		getDescription.setDescription(
@@ -196,6 +206,12 @@ public class StructureShowController extends DefaultExceptionHandler {
 		}
 
 		fullResource.setTitle(resource + " - 主资源（对象）");
+		if (entityClass.isAnnotationPresent(JpaRestfulResource.class)) {
+			JpaRestfulResource annotation = entityClass.getAnnotation(JpaRestfulResource.class);
+			fullResource.setLabel(annotation.label());
+			fullResource.setTip(annotation.tip());
+		}
+		
 		MethodDescription getDescription = new MethodDescription();
 		getDescription.setMethod("GET");
 		getDescription.setDescription("主资源" + resource + "的对象，可带附加对象,例如:user/1?fields=role,department,*");
@@ -256,6 +272,12 @@ public class StructureShowController extends DefaultExceptionHandler {
 		resourceUrl.setStructureUri(getStructurePath(request) + "/" + resource + "/{id}/" + subResource);
 		fullResource.setResource(resourceUrl);
 		fullResource.setTitle(subResource + " - 桥接资源（列表）");
+		if (entityClass.isAnnotationPresent(JpaRestfulResource.class)) {
+			JpaRestfulResource annotation = entityClass.getAnnotation(JpaRestfulResource.class);
+			fullResource.setLabel(annotation.label());
+			fullResource.setTip(annotation.tip());
+		}
+		
 		fullResource.setEvents(CommonUtils.getStructure(entityClass).getEvents());
 		ArrayList<MethodDescription> methods = new ArrayList<MethodDescription>();
 		if (parentStructure) {
@@ -321,6 +343,12 @@ public class StructureShowController extends DefaultExceptionHandler {
 		fullResource.setResource(resourceUrl);
 
 		fullResource.setTitle(subResource + " - 桥接资源（对象）");
+		if (entityClass.isAnnotationPresent(JpaRestfulResource.class)) {
+			JpaRestfulResource annotation = entityClass.getAnnotation(JpaRestfulResource.class);
+			fullResource.setLabel(annotation.label());
+			fullResource.setTip(annotation.tip());
+		}
+		
 		fullResource.setEvents(CommonUtils.getStructure(entityClass).getEvents());
 		ArrayList<MethodDescription> methods = new ArrayList<MethodDescription>();
 		MethodDescription getDescription = new MethodDescription();
@@ -377,6 +405,12 @@ public class StructureShowController extends DefaultExceptionHandler {
 		fullResource.setResource(resourceUrl);
 
 		fullResource.setTitle(subsubResource + " - 桥接资源（列表）");
+		if (entityClass.isAnnotationPresent(JpaRestfulResource.class)) {
+			JpaRestfulResource annotation = entityClass.getAnnotation(JpaRestfulResource.class);
+			fullResource.setLabel(annotation.label());
+			fullResource.setTip(annotation.tip());
+		}
+		
 		ArrayList<MethodDescription> methods = new ArrayList<MethodDescription>();
 		if (parentStructure) {
 			MethodDescription getDescription = new MethodDescription();
@@ -629,6 +663,8 @@ public class StructureShowController extends DefaultExceptionHandler {
 
 	public static class FullResource {
 		private String title;
+		private String label;
+		private String tip;
 		private List<MethodDescription> methods;
 		private HashMap<String, Object> postStructure = new HashMap();
 		private String postStructureString;
@@ -637,6 +673,23 @@ public class StructureShowController extends DefaultExceptionHandler {
 		private HashMap<String, List<Interceptor>> interceptors = new HashMap();
 		private List<Object> fields = new ArrayList<Object>();
 		private HashSet<EntityEvent> events = new HashSet();
+
+		
+		public String getLabel() {
+			return label;
+		}
+
+		public void setLabel(String label) {
+			this.label = label;
+		}
+
+		public String getTip() {
+			return tip;
+		}
+
+		public void setTip(String tip) {
+			this.tip = tip;
+		}
 
 		public HashSet<EntityEvent> getEvents() {
 			return events;
@@ -916,8 +969,26 @@ public class StructureShowController extends DefaultExceptionHandler {
 
 	public static class SimpleResource {
 		private String name;
+		private String label;
+		private String tip;
 		private String resourceUri;
 		private String structureUri;
+
+		public String getLabel() {
+			return label;
+		}
+
+		public void setLabel(String label) {
+			this.label = label;
+		}
+
+		public String getTip() {
+			return tip;
+		}
+
+		public void setTip(String tip) {
+			this.tip = tip;
+		}
 
 		public String getStructureUri() {
 			return structureUri;

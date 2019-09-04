@@ -34,10 +34,17 @@ public class EntityStructureEx extends EntityStructure {
 		private String condition;
 		private String name;
 		private String label;
+		private String tip;
 		private Set<String> roles;
 		private int order=100;
 		private boolean display;
 		
+		public String getTip() {
+			return tip;
+		}
+		public void setTip(String tip) {
+			this.tip = tip;
+		}
 		public boolean isDisplay() {
 			return display;
 		}

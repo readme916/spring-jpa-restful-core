@@ -12,4 +12,5 @@ import java.lang.annotation.Target;
 @Inherited
 public @interface JpaRestfulResource {
 	public String label();
+	public String tip();
 }

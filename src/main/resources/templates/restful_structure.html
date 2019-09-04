@@ -79,6 +79,15 @@
 				</div>
 				<div class="panel panel-primary">
 					<div class="panel-heading">
+						<h3 class="panel-title">资源解释</h3>
+					</div>
+					<div class="panel-body">
+						<div th:text="${resource.label} - ${resource.tip}"></div>
+					</div>
+
+				</div>
+				<div class="panel panel-primary">
+					<div class="panel-heading">
 						<h3 class="panel-title">资源地址</h3>
 					</div>
 					<div class="panel-body">
@@ -192,16 +201,20 @@
 						<table class="table" th:if="${not #sets.isEmpty(resource.events)}">
 							<thead>
 								<tr>
+									<th>code</th>
 									<th>名称</th>
 									<th>允许字段</th>
 									<th>允许条件</th>
+									<th>解释</th>
 								</tr>
 							</thead>
 							<tbody>
 								<tr th:each="e : ${resource.events}">
 									<td th:text="${e.name}"></td>
+									<td th:text="${e.label}"></td>
 									<td th:text="${e.fields}"></td>
 									<td th:text="${e.condition}"></td>
+									<td th:text="${e.tip}"></td>
 								</tr>
 							</tbody>
 						</table>

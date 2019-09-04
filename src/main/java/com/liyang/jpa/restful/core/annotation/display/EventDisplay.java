@@ -12,6 +12,7 @@ import java.lang.annotation.Target;
 @Inherited
 public @interface EventDisplay {
 	String label();
+	String tip();
 	int order() default 0;
 	boolean display() default true ;
 }
